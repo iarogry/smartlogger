@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from odoo import fields, api
+from odoo import models, fields, api
 
 class SmartLoggerData(models.Model):
     _name = 'smartlogger.data'

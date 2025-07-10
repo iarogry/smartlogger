@@ -34,7 +34,7 @@ class SyncDataWizard(models.TransientModel):
         try:
             stations = self.env['smartlogger.station'].search([])
             if stations:
-                last_sync = max(stations.mapped('last_sync_date') or [fields.Datetime.now()])
+                last_sync = fields.Datetime.now()
                 res['last_sync_date'] = last_sync
                 res['message'] = _("Готовий до синхронізації. Остання синхронізація: %s") % last_sync
             else:

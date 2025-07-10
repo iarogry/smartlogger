@@ -24,7 +24,7 @@
 
     'data': [
         # Права доступу
-        'security/ir.model.access.csv',
+        'security/ir_model_access.csv',
         # Дані для Cron-завдання
         'data/cron_data.xml',
         # Відображення для станцій
