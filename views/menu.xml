@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Головне меню "SmartLogger" -->
+    <menuitem id="smartlogger_root_menu" name="SmartLogger" sequence="80" web_icon="huawei_smartlogger,static/description/icon.png"/>
+
+    <!-- Підменю "Моніторинг" -->
+    <menuitem id="smartlogger_monitoring_menu" name="Моніторинг" parent="smartlogger_root_menu" sequence="10"/>
+    <menuitem id="smartlogger_dashboard_menu_item" name="Дашборд" parent="smartlogger_monitoring_menu" action="action_smartlogger_dashboard" sequence="10"/>
+    <menuitem id="smartlogger_stations_menu_item" name="Станції" parent="smartlogger_monitoring_menu" action="action_smartlogger_station" sequence="20"/>
+    <menuitem id="smartlogger_kpi_data_menu_item" name="Історичні дані KPI" parent="smartlogger_monitoring_menu" action="action_smartlogger_data" sequence="30"/>
+
+    <!-- Підменю "Операції" -->
+    <menuitem id="smartlogger_operations_menu" name="Операції" parent="smartlogger_root_menu" sequence="20"/>
+    <menuitem id="smartlogger_sync_wizard_menu_item" name="Синхронізувати дані зараз" parent="smartlogger_operations_menu" action="action_sync_data_wizard" sequence="10"/>
+
+    <!-- Підменю "Конфігурація" (для системних параметрів) -->
+    <menuitem id="smartlogger_configuration_menu" name="Конфігурація" parent="smartlogger_root_menu" sequence="99"/>
+    <!-- Можна додати прямий доступ до системних параметрів або створити кастомний інтерфейс -->
+    <menuitem id="smartlogger_config_params_menu_item" name="Налаштування API" parent="smartlogger_configuration_menu"
+              action="base.action_ir_config_parameter" sequence="10"/>
+
+</odoo>

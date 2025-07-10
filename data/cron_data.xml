@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+	<data noupdate="1">
+		<!-- Cron-завдання для синхронізації даних SmartLogger -->
+		<record id="cron_sync_smartlogger_data" model="ir.cron">
+			<field name="name">Синхронізація даних SmartLogger</field>
+			<field name="model_id" ref="model_smartlogger_station"/>
+			<field name="state">code</field>
+			<field name="code">model.sync_fusionsolar_data()</field>
+			<field name="interval_number">15</field>
+			<!-- Інтервал: кожні 15 хвилин -->
+			<field name="interval_type">minutes</field>
+			<field name="numbercall">-1</field>
+			<!-- Виконувати безкінечно -->
+			<field name="doall">False</field>
+			<!-- Не запускати при старті сервера, якщо пропущено -->
+		</record>
+	</data>
+</odoo>

@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Форма для станції SmartLogger -->
+    <record id="smartlogger_station_view_form" model="ir.ui.view">
+        <field name="name">smartlogger.station.form</field>
+        <field name="model">smartlogger.station</field>
+        <field name="arch" type="xml">
+            <form string="Станція SmartLogger">
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="%(huawei_smartlogger.action_smartlogger_data)d"
+                                type="action"
+                                class="oe_stat_button"
+                                icon="fa-history"
+                                help="Переглянути історичні дані KPI для цієї станції.">
+                            <field name="kpi_data_ids" widget="statinfo" string="Історичні дані"/>
+                        </button>
+                    </div>
+                    <div class="oe_title">
+                        <h1><field name="name" placeholder="Назва станції..."/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="station_code"/>
+                            <field name="capacity"/>
+                            <field name="last_sync"/>
+                        </group>
+                        <group>
+                            <field name="current_power"/>
+                            <field name="daily_energy"/>
+                            <field name="monthly_energy"/>
+                            <field name="yearly_energy"/>
+                            <field name="lifetime_energy"/>
+                        </group>
+                    </group>
+                    <field name="message_ids" widget="mail_thread"/>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Дерево для станцій SmartLogger -->
+    <record id="smartlogger_station_view_tree" model="ir.ui.view">
+        <field name="name">smartlogger.station.tree</field>
+        <field name="model">smartlogger.station</field>
+        <field name="arch" type="xml">
+            <tree string="Станції SmartLogger" decoration-info="current_power == 0">
+                <field name="name"/>
+                <field name="station_code"/>
+                <field name="capacity"/>
+                <field name="current_power"/>
+                <field name="daily_energy"/>
+                <field name="last_sync"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Дія для станцій SmartLogger -->
+    <record id="action_smartlogger_station" model="ir.actions.act_window">
+        <field name="name">Станції SmartLogger</field>
+        <field name="res_model">smartlogger.station</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+</odoo>

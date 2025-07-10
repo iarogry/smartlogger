@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Форма для майстра синхронізації даних -->
+    <record id="sync_data_wizard_view_form" model="ir.ui.view">
+        <field name="name">smartlogger.sync.data.wizard.form</field>
+        <field name="model">smartlogger.sync.data.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Синхронізація даних SmartLogger">
+                <sheet>
+                    <p>Натисніть кнопку нижче, щоб запустити синхронізацію даних з Huawei FusionSolar API.</p>
+                    <field name="message" readonly="1"/>
+                </sheet>
+                <footer>
+                    <button name="action_sync_now" string="Синхронізувати зараз" type="object" class="oe_highlight"/>
+                    <button string="Скасувати" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!-- Дія для виклику майстра синхронізації -->
+    <record id="action_sync_data_wizard" model="ir.actions.act_window">
+        <field name="name">Синхронізувати дані</field>
+        <field name="res_model">smartlogger.sync.data.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field> <!-- Відкривати як модальне вікно -->
+    </record>
+</odoo>

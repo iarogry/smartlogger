@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Дерево для історичних даних KPI -->
+    <record id="smartlogger_data_view_tree" model="ir.ui.view">
+        <field name="name">smartlogger.data.tree</field>
+        <field name="model">smartlogger.data</field>
+        <field name="arch" type="xml">
+            <tree string="Історичні дані KPI">
+                <field name="timestamp"/>
+                <field name="station_id"/>
+                <field name="current_power"/>
+                <field name="daily_energy"/>
+                <field name="monthly_energy"/>
+                <field name="yearly_energy"/>
+                <field name="lifetime_energy"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Дія для історичних даних KPI -->
+    <record id="action_smartlogger_data" model="ir.actions.act_window">
+        <field name="name">Історичні дані KPI</field>
+        <field name="res_model">smartlogger.data</field>
+        <field name="view_mode">tree</field>
+        <field name="context">{'group_by': 'station_id'}</field>
+    </record>
+</odoo>
