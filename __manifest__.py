@@ -17,14 +17,14 @@
     'website': "http://www.hlibodar.com.ua",
 
     'category': 'Operations/IoT',
-    'version': '1.0',
+    'version': '1.0.2',
 
     # Залежності модуля (base для базових функцій, mail для чату та сповіщень)
     'depends': ['base', 'mail'],
 
     'data': [
         # Права доступу
-        'security/ir_model_access.csv',
+        'security/ir.model.access.csv',
         # Дані для Cron-завдання
         'data/cron_data.xml',
         # Відображення для станцій

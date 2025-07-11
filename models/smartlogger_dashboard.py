@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
-from odoo import fields, api, _
+from odoo import models, fields, api, _
 from odoo.exceptions import UserError
 from datetime import datetime, timedelta
 import json
 import logging
 
 _logger = logging.getLogger(__name__)
+
 
 class SmartLoggerDashboard(models.Model):
     _name = 'smartlogger.dashboard'
@@ -203,7 +204,7 @@ class SmartLoggerDashboard(models.Model):
                         'type': 'warning',
                         'station_id': station.id,
                         'station_name': station.name,
-                        'message': f'Останя синхронізація: {sync_delay.seconds // 3600} год. тому'
+                        'message': f'Остання синхронізація: {sync_delay.seconds // 3600} год. тому'
                     })
 
             # Алерт про низьку ефективність
@@ -217,13 +218,21 @@ class SmartLoggerDashboard(models.Model):
                         'message': f'Низька ефективність: {efficiency:.1f}%'
                     })
 
-            # Алерт про статус
-            if station.status in ['error', 'maintenance']:
+            # Алерт про статус - ВИПРАВЛЕНО
+            if hasattr(station, 'status') and station.status in ['error', 'maintenance']:
+                # Отримуємо словник вибору статусів
+                status_field = station._fields.get('status')
+                if status_field and hasattr(status_field, 'selection'):
+                    status_selection = dict(status_field.selection)
+                    status_label = status_selection.get(station.status, station.status)
+                else:
+                    status_label = station.status
+
                 alerts.append({
                     'type': 'error' if station.status == 'error' else 'info',
                     'station_id': station.id,
                     'station_name': station.name,
-                    'message': f'Статус: {dict(station._fields['status'].selection)[station.status]}'
+                    'message': f'Статус: {status_label}'
                 })
 
         return alerts
@@ -231,10 +240,19 @@ class SmartLoggerDashboard(models.Model):
     def _get_status_breakdown(self, stations):
         """Отримує розподіл станцій по статусах"""
         status_counts = {}
-        status_selection = dict(self.env['smartlogger.station']._fields['status'].selection)
+
+        # Перевіряємо, чи існує поле status
+        if hasattr(self.env['smartlogger.station'], '_fields') and 'status' in self.env['smartlogger.station']._fields:
+            status_field = self.env['smartlogger.station']._fields['status']
+            if hasattr(status_field, 'selection'):
+                status_selection = dict(status_field.selection)
+            else:
+                status_selection = {}
+        else:
+            status_selection = {}
 
         for station in stations:
-            status = station.status or 'unknown'
+            status = getattr(station, 'status', 'unknown')
             if status not in status_counts:
                 status_counts[status] = 0
             status_counts[status] += 1
@@ -279,7 +297,7 @@ class SmartLoggerDashboard(models.Model):
                 'station_code': station.station_code,
                 'capacity': station.capacity,
                 'current_power': station.current_power,
-                'status': station.status,
+                'status': getattr(station, 'status', 'unknown'),
                 'last_sync': station.last_sync.strftime('%Y-%m-%d %H:%M:%S') if station.last_sync else False,
             },
             'recent_data': [{
