@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Все действия (ir.actions.act_window) -->
+
+    <!-- Дія для станцій SmartLogger -->
+    <record id="action_smartlogger_station" model="ir.actions.act_window">
+        <field name="name">Станції SmartLogger</field>
+        <field name="res_model">smartlogger.station</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+    <!-- Дія для дашборду -->
+    <record id="action_smartlogger_dashboard" model="ir.actions.act_window">
+        <field name="name">Дашборд SmartLogger</field>
+        <field name="res_model">smartlogger.dashboard</field>
+        <field name="view_mode">form</field>
+        <field name="res_id">1</field>
+        <field name="target">current</field>
+        <field name="context">{'dashboard_mode': True}</field>
+    </record>
+
+    <!-- Дія для виклику майстра синхронізації -->
+    <record id="action_sync_data_wizard" model="ir.actions.act_window">
+        <field name="name">Синхронізувати дані</field>
+        <field name="res_model">smartlogger.sync.data.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field> <!-- Відкривати як модальне вікно -->
+    </record>
+
+            <!-- Дія для історичних даних KPI -->
+    <record id="action_smartlogger_data" model="ir.actions.act_window">
+        <field name="name">Історичні дані KPI</field>
+        <field name="res_model">smartlogger.data</field>
+        <field name="view_mode">tree</field>
+        <field name="context">{'group_by': 'station_id'}</field>
+    </record>
+</odoo>

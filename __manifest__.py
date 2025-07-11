@@ -25,6 +25,7 @@
     'data': [
         # Права доступу
         'views/000_menu.xml',
+        'views/smartlogger_action.xml',
         'security/ir.model.access.csv',
         # Дані для Cron-завдання
         'wizards/sync_data_wizard_views.xml',
