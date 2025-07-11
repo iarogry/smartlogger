@@ -18,11 +18,4 @@
         </field>
     </record>
 
-    <!-- Дія для виклику майстра синхронізації -->
-    <record id="action_sync_data_wizard" model="ir.actions.act_window">
-        <field name="name">Синхронізувати дані</field>
-        <field name="res_model">smartlogger.sync.data.wizard</field>
-        <field name="view_mode">form</field>
-        <field name="target">new</field> <!-- Відкривати як модальне вікно -->
-    </record>
 </odoo>

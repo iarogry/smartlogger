@@ -14,7 +14,7 @@
     """,
 
     'author': "Ярослав Гришин/HD Group LLC",
-    'website': "http://www.hlibodar.com.ua",
+    'website': "https://www.hlibodar.com.ua",
 
     'category': 'Operations/IoT',
     'version': '1.0.2',
@@ -24,8 +24,10 @@
 
     'data': [
         # Права доступу
+        'views/000_menu.xml',
         'security/ir.model.access.csv',
         # Дані для Cron-завдання
+        'wizards/sync_data_wizard_views.xml',
         'data/cron_data.xml',
         # Відображення для історичних даних
         'views/smartlogger_data_views.xml',
@@ -34,9 +36,9 @@
         # Відображення для дашборду
         'views/smartlogger_dashboard_views.xml',
         # Відображення для майстра синхронізації
-        'wizards/sync_data_wizard_views.xml',
+
         # Визначення меню модуля
-        'views/menu.xml',
+        'views/zzz_menu.xml',
     ],
 
     'installable': True,

@@ -62,10 +62,5 @@
         </field>
     </record>
 
-    <!-- Дія для станцій SmartLogger -->
-    <record id="action_smartlogger_station" model="ir.actions.act_window">
-        <field name="name">Станції SmartLogger</field>
-        <field name="res_model">smartlogger.station</field>
-        <field name="view_mode">tree,form</field>
-    </record>
+
 </odoo>

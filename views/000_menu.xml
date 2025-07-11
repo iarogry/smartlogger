@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Головне меню "SmartLogger" -->
+    <menuitem id="smartlogger_root_menu" name="SmartLogger" sequence="80"/>
+
+    <!-- Підменю "Моніторинг" -->
+    <menuitem id="smartlogger_monitoring_menu" name="Моніторинг" parent="smartlogger_root_menu" sequence="10"/>
+
+    <!-- Підменю "Операції" -->
+    <menuitem id="smartlogger_operations_menu" name="Операції" parent="smartlogger_root_menu" sequence="20"/>
+
+    <!-- Підменю "Конфігурація" -->
+    <menuitem id="smartlogger_configuration_menu" name="Конфігурація" parent="smartlogger_root_menu" sequence="99"/>
+</odoo>

@@ -4,6 +4,7 @@ from odoo.exceptions import UserError
 from datetime import datetime, timedelta
 import json
 import logging
+from typing import Dict, Any, Optional
 
 _logger = logging.getLogger(__name__)
 
@@ -14,30 +15,41 @@ class SmartLoggerDashboard(models.Model):
     _auto = False  # Ця модель не створює таблицю в базі даних
 
     # Поля для відображення (не зберігаються в БД)
-    total_stations = fields.Integer(string='Загальна кількість станцій')
-    total_capacity = fields.Float(string='Загальна потужність (кВт)')
-    current_total_power = fields.Float(string='Поточна загальна потужність (кВт)')
-    daily_total_energy = fields.Float(string='Добова загальна енергія (кВт·год)')
+    total_stations = fields.Integer(string='Загальна кількість станцій', default=0)
+    total_capacity = fields.Float(string='Загальна потужність (кВт)', default=0.0)
+    current_total_power = fields.Float(string='Поточна загальна потужність (кВт)', default=0.0)
+    daily_total_energy = fields.Float(string='Добова загальна енергія (кВт·год)', default=0.0)
 
     @api.model
     def default_get(self, fields_list):
         """Заповнення полів дашборду поточними даними"""
         res = super().default_get(fields_list)
-        dashboard_data = self.get_dashboard_data()
-
-        res.update({
-            'total_stations': dashboard_data.get('total_stations', 0),
-            'total_capacity': dashboard_data.get('total_capacity', 0.0),
-            'current_total_power': dashboard_data.get('current_total_power', 0.0),
-            'daily_total_energy': dashboard_data.get('daily_total_energy', 0.0),
-        })
-
+        try:
+            dashboard_data = self.get_dashboard_data()
+            res.update({
+                'total_stations': dashboard_data.get('total_stations', 0),
+                'total_capacity': dashboard_data.get('total_capacity', 0.0),
+                'current_total_power': dashboard_data.get('current_total_power', 0.0),
+                'daily_total_energy': dashboard_data.get('daily_total_energy', 0.0),
+            })
+        except Exception as e:
+            _logger.warning("Помилка при завантаженні даних дашборду: %s", str(e))
+            # Значення за замовчуванням
+            res.update({
+                'total_stations': 0,
+                'total_capacity': 0.0,
+                'current_total_power': 0.0,
+                'daily_total_energy': 0.0,
+            })
         return res
 
     @api.model
     def search_read(self, domain=None, fields=None, offset=0, limit=None, order=None):
         """Переоизначає search_read для віртуальної моделі"""
-        dashboard_data = self.get_dashboard_data()
+        try:
+            dashboard_data = self.get_dashboard_data()
+        except:
+            dashboard_data = {}
 
         record = {
             'id': 1,  # Фіктивний ID
@@ -54,7 +66,10 @@ class SmartLoggerDashboard(models.Model):
 
     def read(self, fields=None, load='_classic_read'):
         """Переоизначає read для віртуальної моделі"""
-        dashboard_data = self.get_dashboard_data()
+        try:
+            dashboard_data = self.get_dashboard_data()
+        except:
+            dashboard_data = {}
 
         record = {
             'id': 1,
@@ -82,6 +97,51 @@ class SmartLoggerDashboard(models.Model):
         """Переоизначає fields_get для віртуальної моделі"""
         res = super().fields_get(allfields, attributes)
         return res
+
+    @api.model
+    def get_dashboard_data(self, filter_params: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+        """
+        Отримує агреговані дані для дашборду SmartLogger (базова версія).
+        """
+        try:
+            # Базовий домен для пошуку станцій
+            domain = []
+
+            # Застосування фільтрів
+            if filter_params:
+                if filter_params.get('station_ids'):
+                    domain.append(('id', 'in', filter_params['station_ids']))
+                if filter_params.get('status'):
+                    domain.append(('status', '=', filter_params['status']))
+
+            # Отримуємо модель станцій
+            StationModel = self.env['smartlogger.station']
+            stations = StationModel.search(domain)
+
+            # Базові розрахунки
+            total_capacity = sum(stations.mapped('capacity'))
+            current_total_power = sum(stations.mapped('current_power'))
+            daily_total_energy = sum(stations.mapped('daily_energy'))
+
+            return {
+                'total_stations': len(stations),
+                'total_capacity': total_capacity,
+                'current_total_power': current_total_power,
+                'daily_total_energy': daily_total_energy,
+                'last_update_time': fields.Datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+                'filter_applied': bool(filter_params)
+            }
+
+        except Exception as e:
+            _logger.error("Помилка при отриманні даних дашборду: %s", str(e))
+            return {
+                'total_stations': 0,
+                'total_capacity': 0.0,
+                'current_total_power': 0.0,
+                'daily_total_energy': 0.0,
+                'last_update_time': fields.Datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+                'filter_applied': False
+            }
 
     @api.model
     def get_dashboard_data(self, filter_params=None):
