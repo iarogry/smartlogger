@@ -25,11 +25,14 @@
     'data': [
         # Права доступу
         'views/000_menu.xml',
+        'views/smartlogger_config_views.xml',
         'views/smartlogger_action.xml',
         'security/ir.model.access.csv',
         # Дані для Cron-завдання
         'wizards/sync_data_wizard_views.xml',
         'data/cron_data.xml',
+        'data/config_data.xml',
+
         # Відображення для історичних даних
         'views/smartlogger_data_views.xml',
         # Відображення для станцій

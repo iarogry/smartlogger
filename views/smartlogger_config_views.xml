@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Специальное представление для настроек SmartLogger -->
+    <record id="ir_config_parameter_smartlogger_tree" model="ir.ui.view">
+        <field name="name">ir.config_parameter.smartlogger.tree</field>
+        <field name="model">ir.config_parameter</field>
+        <field name="arch" type="xml">
+            <tree string="Налаштування SmartLogger API" create="false" delete="false" editable="bottom">
+                <field name="key" readonly="1" string="Параметр"/>
+                <field name="value" string="Значення" placeholder="Введіть значення..."/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Специальное представление формы для настроек -->
+    <record id="ir_config_parameter_smartlogger_form" model="ir.ui.view">
+        <field name="name">ir.config_parameter.smartlogger.form</field>
+        <field name="model">ir.config_parameter</field>
+        <field name="arch" type="xml">
+            <form string="Налаштування SmartLogger API">
+                <sheet>
+                    <group>
+                        <field name="key" readonly="1" string="Параметр"/>
+                        <field name="value" string="Значення" placeholder="Введіть значення..."/>
+                    </group>
+
+                    <div class="alert alert-info" attrs="{'invisible': [('key', '!=', 'huawei.fusionsolar.base_url')]}">
+                        <strong>URL сервера Huawei FusionSolar API</strong><br/>
+                        За замовчуванням: https://eu5.fusionsolar.huawei.com/thirdData<br/>
+                        Для інших регіонів може відрізнятися (eu1, intl, etc.)
+                    </div>
+
+                    <div class="alert alert-warning" attrs="{'invisible': [('key', '!=', 'huawei.fusionsolar.username')]}">
+                        <strong>Ім'я користувача FusionSolar</strong><br/>
+                        Логін від вашого облікового запису Huawei FusionSolar
+                    </div>
+
+                    <div class="alert alert-warning" attrs="{'invisible': [('key', '!=', 'huawei.fusionsolar.password')]}">
+                        <strong>Пароль FusionSolar</strong><br/>
+                        Пароль від вашого облікового запису Huawei FusionSolar<br/>
+                        <em>Примітка: Пароль зберігається в базі даних у відкритому вигляді</em>
+                    </div>
+                </sheet>
+            </form>
+        </field>
+    </record>
+</odoo>
