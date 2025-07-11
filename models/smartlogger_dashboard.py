@@ -20,6 +20,70 @@ class SmartLoggerDashboard(models.Model):
     daily_total_energy = fields.Float(string='Добова загальна енергія (кВт·год)')
 
     @api.model
+    def default_get(self, fields_list):
+        """Заповнення полів дашборду поточними даними"""
+        res = super().default_get(fields_list)
+        dashboard_data = self.get_dashboard_data()
+
+        res.update({
+            'total_stations': dashboard_data.get('total_stations', 0),
+            'total_capacity': dashboard_data.get('total_capacity', 0.0),
+            'current_total_power': dashboard_data.get('current_total_power', 0.0),
+            'daily_total_energy': dashboard_data.get('daily_total_energy', 0.0),
+        })
+
+        return res
+
+    @api.model
+    def search_read(self, domain=None, fields=None, offset=0, limit=None, order=None):
+        """Переоизначає search_read для віртуальної моделі"""
+        dashboard_data = self.get_dashboard_data()
+
+        record = {
+            'id': 1,  # Фіктивний ID
+            'total_stations': dashboard_data.get('total_stations', 0),
+            'total_capacity': dashboard_data.get('total_capacity', 0.0),
+            'current_total_power': dashboard_data.get('current_total_power', 0.0),
+            'daily_total_energy': dashboard_data.get('daily_total_energy', 0.0),
+        }
+
+        if fields:
+            record = {key: record[key] for key in fields if key in record}
+
+        return [record]
+
+    def read(self, fields=None, load='_classic_read'):
+        """Переоизначає read для віртуальної моделі"""
+        dashboard_data = self.get_dashboard_data()
+
+        record = {
+            'id': 1,
+            'total_stations': dashboard_data.get('total_stations', 0),
+            'total_capacity': dashboard_data.get('total_capacity', 0.0),
+            'current_total_power': dashboard_data.get('current_total_power', 0.0),
+            'daily_total_energy': dashboard_data.get('daily_total_energy', 0.0),
+        }
+
+        if fields:
+            record = {key: record[key] for key in fields if key in record}
+
+        return [record]
+
+    @api.model
+    def load(self, fields, data):
+        """Переоизначає load для віртуальної моделі"""
+        return {
+            'ids': [1],
+            'messages': []
+        }
+
+    @api.model
+    def fields_get(self, allfields=None, attributes=None):
+        """Переоизначає fields_get для віртуальної моделі"""
+        res = super().fields_get(allfields, attributes)
+        return res
+
+    @api.model
     def get_dashboard_data(self, filter_params=None):
         """
         Отримує агреговані дані для дашборду SmartLogger.

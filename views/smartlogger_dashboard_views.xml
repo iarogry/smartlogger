@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!-- Форма для дашборду (може бути використана для відображення агрегованих даних) -->
+    <!-- Форма для дашборду -->
     <record id="smartlogger_dashboard_view_form" model="ir.ui.view">
         <field name="name">smartlogger.dashboard.form</field>
         <field name="model">smartlogger.dashboard</field>
@@ -8,40 +8,38 @@
             <form string="Дашборд SmartLogger" create="false" edit="false" delete="false">
                 <sheet>
                     <div class="oe_title">
-                        <h1><field name="name" default_focus="1" readonly="1"/></h1>
+                        <h1>Дашборд SmartLogger</h1>
+                        <p class="text-muted">Загальний огляд всіх станцій</p>
                     </div>
                     <group>
-                        <group>
+                        <group string="Загальна статистика">
                             <field name="total_stations"/>
                             <field name="total_capacity"/>
                         </group>
-                        <group>
+                        <group string="Поточні показники">
                             <field name="current_total_power"/>
                             <field name="daily_total_energy"/>
                         </group>
                     </group>
-                    <separator string="Огляд станцій"/>
-                    <!-- Тут можна додати кастомний JS-віджет для відображення stations_summary -->
-                    <p>Цей дашборд відображає агреговані дані. Для детального відображення даних станцій,
-                        будь ласка, використовуйте окремі списки або кастомні JS-віджети.</p>
+
+                    <separator string="Швидкі дії"/>
+                    <div class="oe_button_box">
+                        <button name="%(action_smartlogger_station)d"
+                                type="action"
+                                string="Переглянути станції"
+                                class="btn-primary"/>
+                        <button name="%(action_sync_data_wizard)d"
+                                type="action"
+                                string="Синхронізувати дані"
+                                class="btn-secondary"/>
+                    </div>
+
+                    <div class="alert alert-info mt-3">
+                        <p><strong>Примітка:</strong> Цей дашборд відображає агреговані дані всіх станцій SmartLogger.</p>
+                        <p>Для детального аналізу скористайтеся окремими розділами станцій та історичних даних.</p>
+                    </div>
                 </sheet>
             </form>
-        </field>
-    </record>
-
-    <!-- Дія для дашборду -->
-    <record id="action_smartlogger_dashboard" model="ir.actions.act_window">
-        <field name="name">Дашборд SmartLogger</field>
-        <field name="res_model">smartlogger.dashboard</field>
-        <field name="view_mode">form</field>
-        <field name="target">current</field>
-        <field name="help" type="html">
-            <p class="o_view_nocontent_smiling_face">
-                Налаштуйте дашборд для моніторингу даних ваших сонячних станцій.
-            </p>
-            <p>
-                Цей дашборд надає загальний огляд ваших станцій SmartLogger.
-            </p>
         </field>
     </record>
 </odoo>

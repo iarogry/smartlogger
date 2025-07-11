@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <!-- Головне меню "SmartLogger" -->
-    <menuitem id="smartlogger_root_menu" name="SmartLogger" sequence="80" web_icon="huawei_smartlogger,static/description/icon.png"/>
+    <menuitem id="smartlogger_root_menu" name="SmartLogger" sequence="80" web_icon="smartlogger,static/description/icon.png"/>
 
     <!-- Підменю "Моніторинг" -->
     <menuitem id="smartlogger_monitoring_menu" name="Моніторинг" parent="smartlogger_root_menu" sequence="10"/>

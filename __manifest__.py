@@ -27,10 +27,10 @@
         'security/ir.model.access.csv',
         # Дані для Cron-завдання
         'data/cron_data.xml',
-        # Відображення для станцій
-        'views/smartlogger_station_views.xml',
         # Відображення для історичних даних
         'views/smartlogger_data_views.xml',
+        # Відображення для станцій
+        'views/smartlogger_station_views.xml',
         # Відображення для дашборду
         'views/smartlogger_dashboard_views.xml',
         # Відображення для майстра синхронізації
