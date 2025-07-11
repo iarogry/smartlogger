@@ -1,19 +1,91 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- ФАЙЛ: views/smartlogger_data_views.xml -->
+<!-- ЗАМЕНИТЬ ПОЛНОСТЬЮ существующий файл -->
+
 <odoo>
     <!-- Дерево для історичних даних KPI -->
     <record id="smartlogger_data_view_tree" model="ir.ui.view">
         <field name="name">smartlogger.data.tree</field>
         <field name="model">smartlogger.data</field>
         <field name="arch" type="xml">
-            <tree string="Історичні дані KPI">
-                <field name="timestamp"/>
-                <field name="station_id"/>
-                <field name="current_power"/>
-                <field name="daily_energy"/>
-                <field name="monthly_energy"/>
-                <field name="yearly_energy"/>
-                <field name="lifetime_energy"/>
+            <tree string="Історичні дані KPI" create="false" edit="false" delete="false">
+                <field name="timestamp" width="150px"/>
+                <field name="station_id" width="200px"/>
+                <field name="current_power" width="120px"/>
+                <field name="daily_energy" width="120px"/>
+                <field name="monthly_energy" width="130px"/>
+                <field name="yearly_energy" width="120px"/>
+                <field name="lifetime_energy" width="130px"/>
             </tree>
+        </field>
+    </record>
+
+    <!-- Форма для історичних даних KPI (только для просмотра) -->
+    <record id="smartlogger_data_view_form" model="ir.ui.view">
+        <field name="name">smartlogger.data.form</field>
+        <field name="model">smartlogger.data</field>
+        <field name="arch" type="xml">
+            <form string="Дані KPI" create="false" edit="false" delete="false">
+                <sheet>
+                    <div class="oe_title">
+                        <h1>Дані KPI станції</h1>
+                    </div>
+                    <group>
+                        <group string="Основна інформація">
+                            <field name="station_id" readonly="1"/>
+                            <field name="timestamp" readonly="1"/>
+                        </group>
+                        <group string="Показники енергії">
+                            <field name="current_power" readonly="1"/>
+                            <field name="daily_energy" readonly="1"/>
+                            <field name="monthly_energy" readonly="1"/>
+                            <field name="yearly_energy" readonly="1"/>
+                            <field name="lifetime_energy" readonly="1"/>
+                        </group>
+                    </group>
+
+                    <div class="alert alert-info mt-3">
+                        <p><strong>Примітка:</strong> Ці дані створюються автоматично під час синхронізації з Huawei FusionSolar API.</p>
+                        <p>Для ручного оновлення даних скористайтеся функцією синхронізації в розділі "Операції".</p>
+                    </div>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Пошук для історичних даних -->
+    <record id="smartlogger_data_view_search" model="ir.ui.view">
+        <field name="name">smartlogger.data.search</field>
+        <field name="model">smartlogger.data</field>
+        <field name="arch" type="xml">
+            <search string="Пошук даних KPI">
+                <field name="station_id" string="Станція"/>
+                <field name="timestamp" string="Дата/час"/>
+
+                <filter name="today" string="Сьогодні"
+                        domain="[('timestamp', '>=', datetime.datetime.combine(context_today(), datetime.time(0,0,0))),
+                                 ('timestamp', '&lt;', datetime.datetime.combine(context_today() + datetime.timedelta(days=1), datetime.time(0,0,0)))]"/>
+                <filter name="this_week" string="Цей тиждень"
+                        domain="[('timestamp', '>=', (context_today() - datetime.timedelta(days=context_today().weekday())).strftime('%Y-%m-%d')),
+                                 ('timestamp', '&lt;', (context_today() + datetime.timedelta(days=7-context_today().weekday())).strftime('%Y-%m-%d'))]"/>
+                <filter name="this_month" string="Цей місяць"
+                        domain="[('timestamp', '>=', datetime.datetime.now().strftime('%Y-%m-01'))]"/>
+
+                <separator/>
+                <filter name="high_power" string="Висока потужність (&gt; 50 кВт)"
+                        domain="[('current_power', '>', 50)]"/>
+                <filter name="zero_power" string="Нульова потужність"
+                        domain="[('current_power', '=', 0)]"/>
+
+                <group expand="0" string="Групувати за">
+                    <filter name="group_by_station" string="Станцією"
+                            context="{'group_by': 'station_id'}"/>
+                    <filter name="group_by_date" string="Датою"
+                            context="{'group_by': 'timestamp:day'}"/>
+                    <filter name="group_by_month" string="Місяцем"
+                            context="{'group_by': 'timestamp:month'}"/>
+                </group>
+            </search>
         </field>
     </record>
 </odoo>

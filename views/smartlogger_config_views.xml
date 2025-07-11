@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- ФАЙЛ: views/smartlogger_config_views.xml -->
+<!-- ЗАМЕНИТЬ ПОЛНОСТЬЮ существующий файл -->
+
 <odoo>
-    <!-- Специальное представление для настроек SmartLogger -->
+    <!-- Улучшенное представление для настроек SmartLogger -->
     <record id="ir_config_parameter_smartlogger_tree" model="ir.ui.view">
         <field name="name">ir.config_parameter.smartlogger.tree</field>
         <field name="model">ir.config_parameter</field>
@@ -8,11 +11,13 @@
             <tree string="Налаштування SmartLogger API" create="false" delete="false" editable="bottom">
                 <field name="key" readonly="1" string="Параметр"/>
                 <field name="value" string="Значення" placeholder="Введіть значення..."/>
+                <!-- Додаємо поле для групування -->
+                <field name="key" invisible="1"/>
             </tree>
         </field>
     </record>
 
-    <!-- Специальное представление формы для настроек -->
+    <!-- Улучшенное представление формы для настроек -->
     <record id="ir_config_parameter_smartlogger_form" model="ir.ui.view">
         <field name="name">ir.config_parameter.smartlogger.form</field>
         <field name="model">ir.config_parameter</field>
@@ -24,24 +29,139 @@
                         <field name="value" string="Значення" placeholder="Введіть значення..."/>
                     </group>
 
+                    <!-- Основні налаштування -->
                     <div class="alert alert-info" attrs="{'invisible': [('key', '!=', 'huawei.fusionsolar.base_url')]}">
                         <strong>URL сервера Huawei FusionSolar API</strong><br/>
                         За замовчуванням: https://eu5.fusionsolar.huawei.com/thirdData<br/>
-                        Для інших регіонів може відрізнятися (eu1, intl, etc.)
+                        Для інших регіонів може відрізнятися:
+                        <ul>
+                            <li>EU: https://eu5.fusionsolar.huawei.com/thirdData</li>
+                            <li>Asia-Pacific: https://ap-southeast-1.fusionsolar.huawei.com/thirdData</li>
+                            <li>Australia: https://au5.fusionsolar.huawei.com/thirdData</li>
+                            <li>Americas: https://la5.fusionsolar.huawei.com/thirdData</li>
+                        </ul>
                     </div>
 
                     <div class="alert alert-warning" attrs="{'invisible': [('key', '!=', 'huawei.fusionsolar.username')]}">
                         <strong>Ім'я користувача FusionSolar</strong><br/>
-                        Логін від вашого облікового запису Huawei FusionSolar
+                        Логін від вашого облікового запису Northbound API Huawei FusionSolar.<br/>
+                        <em>Примітка: Це має бути окремий Northbound API користувач, не звичайний логін до порталу.</em>
                     </div>
 
                     <div class="alert alert-warning" attrs="{'invisible': [('key', '!=', 'huawei.fusionsolar.password')]}">
-                        <strong>Пароль FusionSolar</strong><br/>
-                        Пароль від вашого облікового запису Huawei FusionSolar<br/>
-                        <em>Примітка: Пароль зберігається в базі даних у відкритому вигляді</em>
+                        <strong>Пароль FusionSolar (System Code)</strong><br/>
+                        Пароль від вашого Northbound API користувача.<br/>
+                        <em>Примітка: Пароль зберігається в базі даних у відкритому вигляді.</em>
+                    </div>
+
+                    <!-- Налаштування продуктивності -->
+                    <div class="alert alert-info" attrs="{'invisible': [('key', '!=', 'huawei.fusionsolar.batch_size')]}">
+                        <strong>Розмір пакету для обробки станцій</strong><br/>
+                        Кількість станцій, які обробляються в одному API запиті.<br/>
+                        Рекомендовано: 10-20 для великих інсталяцій, 5-10 для маленьких.<br/>
+                        Менше значення = більше API викликів, але менше ризику таймауту.
+                    </div>
+
+                    <div class="alert alert-info" attrs="{'invisible': [('key', '!=', 'huawei.fusionsolar.request_delay')]}">
+                        <strong>Затримка між запитами (секунди)</strong><br/>
+                        Пауза між API запитами для уникнення перевантаження сервера.<br/>
+                        Рекомендовано: 1.0-2.0 секунди.<br/>
+                        Huawei має строгі ліміти на кількість запитів.
+                    </div>
+
+                    <div class="alert alert-info" attrs="{'invisible': [('key', '!=', 'huawei.fusionsolar.max_retries')]}">
+                        <strong>Максимальна кількість повторних спроб</strong><br/>
+                        Кількість спроб повторити запит при помилці.<br/>
+                        Рекомендовано: 2-3 спроби.
+                    </div>
+
+                    <div class="alert alert-info" attrs="{'invisible': [('key', '!=', 'huawei.fusionsolar.timeout')]}">
+                        <strong>Таймаут запиту (секунди)</strong><br/>
+                        Максимальний час очікування відповіді від API.<br/>
+                        Рекомендовано: 30-60 секунд для великих інсталяцій.
+                    </div>
+
+                    <!-- Налаштування даних -->
+                    <div class="alert alert-info" attrs="{'invisible': [('key', '!=', 'huawei.fusionsolar.data_retention_days')]}">
+                        <strong>Термін зберігання історичних даних (днів)</strong><br/>
+                        Кількість днів для зберігання детальних KPI даних.<br/>
+                        Старіші дані автоматично видаляються для економії місця.<br/>
+                        Рекомендовано: 90-365 днів.
+                    </div>
+
+                    <!-- Розширені налаштування -->
+                    <div class="alert alert-warning" attrs="{'invisible': [('key', '!=', 'huawei.fusionsolar.enable_batch_processing')]}">
+                        <strong>Увімкнути пакетну обробку</strong><br/>
+                        Використовувати пакетні запити для кращої продуктивності.<br/>
+                        Значення: true/false<br/>
+                        <em>Вимкніть, якщо виникають проблеми з пакетними запитами.</em>
+                    </div>
+
+                    <div class="alert alert-warning" attrs="{'invisible': [('key', '!=', 'huawei.fusionsolar.use_legacy_api')]}">
+                        <strong>Використовувати застарілий API</strong><br/>
+                        Примусово використовувати getStationList замість нового /stations.<br/>
+                        Значення: true/false<br/>
+                        <em>Увімкніть, якщо новий API не працює у вашому регіоні.</em>
+                    </div>
+
+                    <div class="alert alert-info" attrs="{'invisible': [('key', '!=', 'huawei.fusionsolar.log_level')]}">
+                        <strong>Рівень логування</strong><br/>
+                        Детальність логів синхронізації.<br/>
+                        Значення: DEBUG, INFO, WARNING, ERROR<br/>
+                        DEBUG - найбільш детальний, ERROR - тільки помилки.
+                    </div>
+
+                    <!-- Загальна довідка -->
+                    <div class="alert alert-success mt-3">
+                        <strong>Довідка по налаштуванню:</strong>
+                        <ol>
+                            <li>Отримайте Northbound API доступ від Huawei Support</li>
+                            <li>Заповніть username, password та перевірте URL для вашого регіону</li>
+                            <li>Почніть з базових налаштувань (batch_size=10, request_delay=1.0)</li>
+                            <li>При проблемах увімкніть DEBUG логування та перевірте логи</li>
+                            <li>Для великої кількості станцій збільште batch_size та timeout</li>
+                        </ol>
                     </div>
                 </sheet>
             </form>
+        </field>
+    </record>
+
+    <!-- Покращена дія з групуванням параметрів -->
+    <record id="action_smartlogger_config" model="ir.actions.act_window">
+        <field name="name">Налаштування SmartLogger API</field>
+        <field name="res_model">ir.config_parameter</field>
+        <field name="view_mode">tree,form</field>
+        <field name="view_ids" eval="[(5, 0, 0),
+                                      (0, 0, {'view_mode': 'tree', 'view_id': ref('ir_config_parameter_smartlogger_tree')}),
+                                      (0, 0, {'view_mode': 'form', 'view_id': ref('ir_config_parameter_smartlogger_form')})]"/>
+        <field name="domain">[('key', 'ilike', 'huawei.fusionsolar%')]</field>
+        <field name="context">{'create': False, 'delete': False, 'group_by': 'key'}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Налаштуйте параметри підключення до Huawei FusionSolar API
+            </p>
+            <p>
+                <strong>Основні параметри (обов'язкові):</strong><br/>
+                • <strong>base_url</strong> - URL сервера API (вже заповнений)<br/>
+                • <strong>username</strong> - Northbound API користувач<br/>
+                • <strong>password</strong> - Пароль (System Code)<br/>
+            </p>
+            <p>
+                <strong>Параметри продуктивності:</strong><br/>
+                • <strong>batch_size</strong> - Розмір пакету станцій (10-20)<br/>
+                • <strong>request_delay</strong> - Затримка між запитами (1.0 сек)<br/>
+                • <strong>timeout</strong> - Таймаут запиту (30 сек)<br/>
+            </p>
+            <p>
+                <strong>Розширені налаштування:</strong><br/>
+                • <strong>data_retention_days</strong> - Термін зберігання даних (90 днів)<br/>
+                • <strong>enable_batch_processing</strong> - Пакетна обробка (true)<br/>
+                • <strong>use_legacy_api</strong> - Застарілий API (false)<br/>
+            </p>
+            <p>
+                Просто натисніть на рядок з параметром та введіть значення у поле "Значення".
+            </p>
         </field>
     </record>
 </odoo>

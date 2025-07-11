@@ -1,4 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- ФАЙЛ: views/smartlogger_action.xml -->
+<!-- ЗАМЕНИТЬ ПОЛНОСТЬЮ существующий файл -->
+
 <odoo>
     <!-- Все действия (ir.actions.act_window) -->
 
@@ -8,6 +11,7 @@
         <field name="res_model">smartlogger.station</field>
         <field name="view_mode">tree,form</field>
     </record>
+
     <!-- Дія для дашборду -->
     <record id="action_smartlogger_dashboard" model="ir.actions.act_window">
         <field name="name">Дашборд SmartLogger</field>
@@ -26,16 +30,30 @@
         <field name="target">new</field> <!-- Відкривати як модальне вікно -->
     </record>
 
-            <!-- Дія для історичних даних KPI -->
+    <!-- Дія для історичних даних KPI (ИСПРАВЛЕНО) -->
     <record id="action_smartlogger_data" model="ir.actions.act_window">
         <field name="name">Історичні дані KPI</field>
         <field name="res_model">smartlogger.data</field>
-        <field name="view_mode">tree</field>
+        <field name="view_mode">tree,form</field>
         <field name="context">{'group_by': 'station_id'}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Тут будуть відображатися історичні дані KPI ваших станцій
+            </p>
+            <p>
+                Дані автоматично збираються під час синхронізації з Huawei FusionSolar API.<br/>
+                Якщо дані відсутні, перевірте:
+            </p>
+            <ul>
+                <li>Чи налаштовані станції в розділі "Станції"</li>
+                <li>Чи правильно налаштовані параметри API в "Конфігурація > Налаштування API"</li>
+                <li>Чи працює автоматична синхронізація або запустіть її вручну в "Операції > Синхронізувати дані зараз"</li>
+            </ul>
+        </field>
     </record>
 
-        <!-- Дія для налаштувань API (системні параметри SmartLogger) -->
-        <record id="action_smartlogger_config" model="ir.actions.act_window">
+    <!-- Дія для налаштувань API (системні параметри SmartLogger) -->
+    <record id="action_smartlogger_config" model="ir.actions.act_window">
         <field name="name">Налаштування SmartLogger API</field>
         <field name="res_model">ir.config_parameter</field>
         <field name="view_mode">tree,form</field>

@@ -1,38 +1,85 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- ФАЙЛ: views/zzz_menu.xml -->
+<!-- ЗАМЕНИТЬ ПОЛНОСТЬЮ существующий файл -->
+
 <odoo>
 
     <!-- Пункты меню с действиями (загружаются после определения всех действий) -->
 
-    <!-- Моніторинг -->
+    <!-- 📊 Моніторинг -->
     <menuitem id="smartlogger_dashboard_menu_item"
-              name="Дашборд"
+              name="📊 Дашборд"
               parent="smartlogger_monitoring_menu"
               action="action_smartlogger_dashboard"
               sequence="10"/>
 
     <menuitem id="smartlogger_stations_menu_item"
-              name="Станції"
+              name="🏭 Станції"
               parent="smartlogger_monitoring_menu"
               action="action_smartlogger_station"
               sequence="20"/>
 
     <menuitem id="smartlogger_kpi_data_menu_item"
-              name="Історичні дані KPI"
+              name="📈 Історичні дані KPI"
               parent="smartlogger_monitoring_menu"
               action="action_smartlogger_data"
               sequence="30"/>
 
-    <!-- Операції -->
+    <!-- Додаткові представлення станцій -->
+    <menuitem id="smartlogger_stations_kanban_menu_item"
+              name="🏗️ Станції (Kanban)"
+              parent="smartlogger_monitoring_menu"
+              action="action_smartlogger_station_kanban"
+              sequence="25"/>
+
+    <menuitem id="smartlogger_error_stations_menu_item"
+              name="⚠️ Станції з помилками"
+              parent="smartlogger_monitoring_menu"
+              action="action_smartlogger_error_stations"
+              sequence="35"/>
+
+    <!-- 🔄 Операції -->
     <menuitem id="smartlogger_sync_wizard_menu_item"
-              name="Синхронізувати дані зараз"
+              name="🔄 Синхронізація даних"
               parent="smartlogger_operations_menu"
               action="action_sync_data_wizard"
               sequence="10"/>
 
-        <!-- Конфігурація -->
+    <menuitem id="smartlogger_manual_sync_menu_item"
+              name="🎯 Вибіркова синхронізація"
+              parent="smartlogger_operations_menu"
+              action="action_manual_sync_wizard"
+              sequence="20"/>
+
+    <!-- ⚙️ Конфігурація -->
     <menuitem id="smartlogger_config_params_menu_item"
-              name="Налаштування API"
+              name="🔑 Налаштування API"
               parent="smartlogger_configuration_menu"
               action="action_smartlogger_config"
               sequence="10"/>
+
+    <menuitem id="smartlogger_cron_jobs_menu_item"
+              name="⏰ Автоматичні завдання"
+              parent="smartlogger_configuration_menu"
+              action="action_smartlogger_cron_jobs"
+              sequence="20"/>
+
+    <menuitem id="smartlogger_advanced_config_menu_item"
+              name="🔧 Розширені налаштування"
+              parent="smartlogger_configuration_menu"
+              action="action_smartlogger_advanced_config"
+              sequence="30"/>
+
+    <!-- 🛠️ Обслуговування -->
+    <menuitem id="smartlogger_maintenance_menu"
+              name="🛠️ Обслуговування"
+              parent="smartlogger_root_menu"
+              sequence="40"/>
+
+    <!-- 📚 Довідка -->
+    <menuitem id="smartlogger_help_menu"
+              name="📚 Довідка"
+              parent="smartlogger_root_menu"
+              sequence="99"/>
+
 </odoo>

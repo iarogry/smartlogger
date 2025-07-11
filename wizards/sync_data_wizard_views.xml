@@ -1,20 +1,160 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- ФАЙЛ: wizards/sync_data_wizard_views.xml -->
+<!-- ЗАМЕНИТЬ ПОЛНОСТЬЮ существующий файл -->
+
 <odoo>
-    <!-- Форма для майстра синхронізації даних -->
+    <!-- Улучшенная форма для майстра синхронізації даних -->
     <record id="sync_data_wizard_view_form" model="ir.ui.view">
         <field name="name">smartlogger.sync.data.wizard.form</field>
         <field name="model">smartlogger.sync.data.wizard</field>
         <field name="arch" type="xml">
             <form string="Синхронізація даних SmartLogger">
+                <header>
+                    <field name="sync_status" widget="statusbar" statusbar_visible="waiting,running,success,error"/>
+                </header>
                 <sheet>
-                    <p>Натисніть кнопку нижче, щоб запустити синхронізацію даних з Huawei FusionSolar API.</p>
-                    <field name="message" readonly="1"/>
+                    <div class="oe_title">
+                        <h1>Синхронізація з Huawei FusionSolar API</h1>
+                        <p class="text-muted">Оберіть режим синхронізації та натисніть "Запустити"</p>
+                    </div>
+
+                    <!-- Основна інформація -->
+                    <group>
+                        <group string="Поточний статус">
+                            <field name="message" readonly="1" class="text-info"/>
+                            <field name="last_sync_date" readonly="1"/>
+                            <field name="total_stations" readonly="1"/>
+                        </group>
+                        <group string="Результати останньої синхронізації" attrs="{'invisible': [('sync_status', 'in', ['waiting', 'running'])]}">
+                            <field name="stations_found" readonly="1" attrs="{'invisible': [('stations_found', '=', 0)]}"/>
+                            <field name="stations_created" readonly="1" attrs="{'invisible': [('stations_created', '=', 0)]}"/>
+                            <field name="stations_updated" readonly="1" attrs="{'invisible': [('stations_updated', '=', 0)]}"/>
+                            <field name="stations_errors" readonly="1" attrs="{'invisible': [('stations_errors', '=', 0)]}"/>
+                        </group>
+                    </group>
+
+                    <!-- Опції синхронізації -->
+                    <group string="Налаштування синхронізації" attrs="{'invisible': [('sync_status', '=', 'running')]}">
+                        <group>
+                            <field name="sync_mode"/>
+                            <field name="force_refresh"/>
+                            <field name="batch_processing"/>
+                        </group>
+                        <group>
+                            <field name="selected_station_ids" widget="many2many_tags"
+                                   attrs="{'invisible': [('sync_mode', '!=', 'data_only')]}"
+                                   options="{'no_create': True}"/>
+                        </group>
+                    </group>
+
+                    <!-- Детальна інформація про результати -->
+                    <notebook attrs="{'invisible': [('sync_status', 'in', ['waiting', 'running'])]}">
+                        <page string="Деталі синхронізації" attrs="{'invisible': [('sync_details', '=', False)]}">
+                            <field name="sync_details" readonly="1" widget="text"/>
+                        </page>
+
+                        <page string="Статистика продуктивності" attrs="{'invisible': [('performance_stats', '=', False)]}">
+                            <field name="performance_stats" readonly="1" widget="text"/>
+                        </page>
+
+                        <page string="Помилки" attrs="{'invisible': [('error_details', '=', False)]}">
+                            <field name="error_details" readonly="1" widget="text" class="text-danger"/>
+                        </page>
+
+                        <page string="Результати" attrs="{'invisible': [('sync_results', '=', False)]}">
+                            <field name="sync_results" readonly="1" widget="text"/>
+                        </page>
+                    </notebook>
+
+                    <!-- Попередження та поради -->
+                    <div class="alert alert-info mt-3" attrs="{'invisible': [('sync_status', '!=', 'waiting')]}">
+                        <strong>Режими синхронізації:</strong>
+                        <ul>
+                            <li><strong>Повна синхронізація:</strong> Оновлює список станцій та всі KPI дані</li>
+                            <li><strong>Інкрементальна:</strong> Оновлює тільки станції, які не синхронізувалися більше години</li>
+                            <li><strong>Тільки список станцій:</strong> Імпортує нові станції з API без KPI даних</li>
+                            <li><strong>Тільки дані KPI:</strong> Оновлює KPI дані для існуючих станцій</li>
+                        </ul>
+                    </div>
+
+                    <div class="alert alert-warning mt-3" attrs="{'invisible': [('sync_status', '!=', 'error')]}">
+                        <strong>Помилка синхронізації!</strong><br/>
+                        Перевірте налаштування API в розділі "Конфігурація > Налаштування API" та спробуйте знову.
+                    </div>
+
+                    <div class="alert alert-success mt-3" attrs="{'invisible': [('sync_status', '!=', 'success')]}">
+                        <strong>Синхронізація завершена успішно!</strong><br/>
+                        Переглянути результати можна в розділах "Станції" та "Історичні дані KPI".
+                    </div>
+
+                    <div class="alert alert-warning mt-3" attrs="{'invisible': [('sync_status', '!=', 'partial_success')]}">
+                        <strong>Синхронізація завершена з деякими помилками.</strong><br/>
+                        Перевірте деталі помилок на відповідній вкладці та спробуйте повторити для проблемних станцій.
+                    </div>
+
+                </sheet>
+
+                <footer>
+                    <!-- Основні кнопки -->
+                    <button name="action_sync_now" string="Запустити синхронізацію"
+                            type="object" class="oe_highlight"
+                            attrs="{'invisible': [('sync_status', 'in', ['running'])]}"/>
+
+                    <!-- Додаткові дії -->
+                    <button name="action_view_stations" string="Переглянути станції"
+                            type="object" class="btn-secondary"
+                            attrs="{'invisible': [('sync_status', 'in', ['waiting', 'running'])]}"/>
+
+                    <button name="action_view_errors" string="Станції з помилками"
+                            type="object" class="btn-warning"
+                            attrs="{'invisible': ['|', ('sync_status', 'in', ['waiting', 'running']), ('stations_errors', '=', 0)]}"/>
+
+                    <button name="action_retry_failed" string="Повторити помилкові"
+                            type="object" class="btn-warning"
+                            attrs="{'invisible': ['|', ('sync_status', 'in', ['waiting', 'running']), ('stations_errors', '=', 0)]}"/>
+
+                    <button name="action_cleanup_old_data" string="Очистити старі дані"
+                            type="object" class="btn-secondary"
+                            attrs="{'invisible': [('sync_status', 'in', ['waiting', 'running'])]}"/>
+
+                    <!-- Закрити -->
+                    <button string="Закрити" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!-- Спрощена форма для швидкої синхронізації -->
+    <record id="sync_data_wizard_quick_form" model="ir.ui.view">
+        <field name="name">smartlogger.sync.data.wizard.quick.form</field>
+        <field name="model">smartlogger.sync.data.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Швидка синхронізація">
+                <sheet>
+                    <div class="oe_title">
+                        <h2>Швидка синхронізація</h2>
+                    </div>
+                    <group>
+                        <field name="message" readonly="1"/>
+                        <field name="sync_mode" default="incremental"/>
+                    </group>
                 </sheet>
                 <footer>
-                    <button name="action_sync_now" string="Синхронізувати зараз" type="object" class="oe_highlight"/>
+                    <button name="action_sync_now" string="Синхронізувати"
+                            type="object" class="oe_highlight"/>
                     <button string="Скасувати" class="btn-secondary" special="cancel"/>
                 </footer>
             </form>
         </field>
+    </record>
+
+    <!-- Дія для швидкої синхронізації -->
+    <record id="action_quick_sync_wizard" model="ir.actions.act_window">
+        <field name="name">Швидка синхронізація</field>
+        <field name="res_model">smartlogger.sync.data.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="sync_data_wizard_quick_form"/>
+        <field name="target">new</field>
+        <field name="context">{'default_sync_mode': 'incremental'}</field>
     </record>
 </odoo>

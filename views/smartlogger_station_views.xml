@@ -1,11 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- ФАЙЛ: views/smartlogger_station_views.xml -->
+<!-- ЗАМЕНИТЬ ПОЛНОСТЬЮ существующий файл -->
+
 <odoo>
-    <!-- Форма для станції SmartLogger -->
+    <!-- Улучшенная форма для станции SmartLogger -->
     <record id="smartlogger_station_view_form" model="ir.ui.view">
         <field name="name">smartlogger.station.form</field>
         <field name="model">smartlogger.station</field>
         <field name="arch" type="xml">
             <form string="Станція SmartLogger">
+                <header>
+                    <field name="status" widget="statusbar" statusbar_visible="active,inactive,maintenance,error"/>
+                </header>
                 <sheet>
                     <div class="oe_button_box" name="button_box">
                         <button name="%(action_smartlogger_data)d"
@@ -16,26 +22,110 @@
                                 context="{'default_station_id': active_id, 'search_default_station_id': active_id}">
                             <field name="kpi_data_ids" widget="statinfo" string="Історичні дані"/>
                         </button>
+
+                        <button name="action_sync_data"
+                                type="object"
+                                class="oe_stat_button"
+                                icon="fa-refresh"
+                                help="Синхронізувати дані цієї станції">
+                            <div class="o_field_widget o_stat_info">
+                                <span class="o_stat_text">Синхронізувати</span>
+                            </div>
+                        </button>
                     </div>
+
                     <div class="oe_title">
                         <h1><field name="name" placeholder="Назва станції..."/></h1>
+                        <h3><field name="station_code" placeholder="Код станції"/></h3>
                     </div>
+
                     <group>
-                        <group>
+                        <group string="Основна інформація">
                             <field name="station_code"/>
+                            <field name="plant_code"/>
                             <field name="capacity"/>
+                            <field name="region"/>
                             <field name="status"/>
                             <field name="last_sync"/>
                         </group>
-                        <group>
-                            <field name="current_power"/>
+                        <group string="Поточні показники">
+                            <field name="current_power"
+                                   decoration-success="current_power > 0"
+                                   decoration-muted="current_power == 0"/>
                             <field name="daily_energy"/>
                             <field name="monthly_energy"/>
                             <field name="yearly_energy"/>
                             <field name="lifetime_energy"/>
                         </group>
                     </group>
+
+                    <group>
+                        <group string="Налаштування синхронізації">
+                            <field name="sync_priority"/>
+                            <field name="batch_group"/>
+                            <field name="api_endpoint" placeholder="Залишіть порожнім для значення за замовчуванням"/>
+                        </group>
+                        <group string="Статистика синхронізації">
+                            <field name="successful_syncs" readonly="1"/>
+                            <field name="sync_attempts" readonly="1"/>
+                            <field name="last_error" readonly="1" attrs="{'invisible': [('last_error', '=', False)]}"/>
+                        </group>
+                    </group>
+
+                    <!-- Індикатори ефективності -->
+                    <group string="Аналітика">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="o_field_widget">
+                                    <label>Ефективність</label>
+                                    <div class="o_field_value">
+                                        <field name="current_power" invisible="1"/>
+                                        <field name="capacity" invisible="1"/>
+                                        <span attrs="{'invisible': [('capacity', '=', 0)]}">
+                                            <t t-esc="round((record.current_power.raw_value / record.capacity.raw_value) * 100, 1) if record.capacity.raw_value > 0 else 0"/>%
+                                        </span>
+                                        <span attrs="{'invisible': [('capacity', '!=', 0)]}">
+                                            Не вказана потужність
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="o_field_widget">
+                                    <label>Статус з'єднання</label>
+                                    <div class="o_field_value">
+                                        <span class="badge badge-success" attrs="{'invisible': ['|', ('last_sync', '=', False), ('last_sync', '&lt;', datetime.datetime.now() - datetime.timedelta(hours=2))]}">
+                                            Підключено
+                                        </span>
+                                        <span class="badge badge-warning" attrs="{'invisible': ['|', ('last_sync', '=', False), ('last_sync', '&gt;=', datetime.datetime.now() - datetime.timedelta(hours=2))]}">
+                                            Застаріли дані
+                                        </span>
+                                        <span class="badge badge-danger" attrs="{'invisible': [('last_sync', '!=', False)]}">
+                                            Ніколи не синхронізувалось
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </group>
+
+                    <!-- Попередження та поради -->
+                    <div class="alert alert-warning" attrs="{'invisible': [('status', '!=', 'error')]}">
+                        <strong>Станція має статус помилки!</strong><br/>
+                        Перевірте підключення та налаштування API. Деталі помилки див. у полі "Остання помилка".
+                    </div>
+
+                    <div class="alert alert-info" attrs="{'invisible': [('last_sync', '!=', False)]}">
+                        <strong>Станція ще не синхронізувалась</strong><br/>
+                        Запустіть синхронізацію для отримання актуальних даних з Huawei FusionSolar.
+                    </div>
+
+                    <div class="alert alert-warning" attrs="{'invisible': ['|', ('last_sync', '=', False), ('last_sync', '&gt;=', datetime.datetime.now() - datetime.timedelta(hours=2))]}">
+                        <strong>Дані застарілі</strong><br/>
+                        Остання синхронізація була більше 2 годин тому. Рекомендується перевірити роботу автоматичної синхронізації.
+                    </div>
                 </sheet>
+
                 <!-- Mail thread для відстеження повідомлень -->
                 <div class="oe_chatter">
                     <field name="message_follower_ids"/>
@@ -46,20 +136,202 @@
         </field>
     </record>
 
-    <!-- Дерево для станцій SmartLogger -->
+    <!-- Улучшенное дерево для станций SmartLogger -->
     <record id="smartlogger_station_view_tree" model="ir.ui.view">
         <field name="name">smartlogger.station.tree</field>
         <field name="model">smartlogger.station</field>
         <field name="arch" type="xml">
-            <tree string="Станції SmartLogger" decoration-info="current_power == 0">
+            <tree string="Станції SmartLogger"
+                  decoration-success="status == 'active'"
+                  decoration-info="status == 'inactive'"
+                  decoration-warning="status == 'maintenance'"
+                  decoration-danger="status in ['error', 'sync_error']"
+                  decoration-muted="current_power == 0">
+
                 <field name="name"/>
                 <field name="station_code"/>
-                <field name="capacity"/>
-                <field name="current_power"/>
+                <field name="region" optional="hide"/>
+                <field name="status" widget="badge"
+                       decoration-success="status == 'active'"
+                       decoration-info="status == 'inactive'"
+                       decoration-warning="status == 'maintenance'"
+                       decoration-danger="status in ['error', 'sync_error']"/>
+                <field name="capacity" optional="show"/>
+                <field name="current_power" decoration-bf="current_power > 0"/>
                 <field name="daily_energy"/>
+                <field name="monthly_energy" optional="hide"/>
+                <field name="yearly_energy" optional="hide"/>
                 <field name="last_sync"/>
+                <field name="sync_priority" optional="hide"/>
+                <field name="batch_group" optional="hide"/>
+                <field name="successful_syncs" optional="hide"/>
+                <field name="sync_attempts" optional="hide"/>
             </tree>
         </field>
     </record>
 
+    <!-- Представление поиска для станций -->
+    <record id="smartlogger_station_view_search" model="ir.ui.view">
+        <field name="name">smartlogger.station.search</field>
+        <field name="model">smartlogger.station</field>
+        <field name="arch" type="xml">
+            <search string="Пошук станцій">
+                <field name="name" string="Назва"/>
+                <field name="station_code" string="Код станції"/>
+                <field name="region" string="Регіон"/>
+
+                <filter name="active_stations" string="Активні станції"
+                        domain="[('status', '=', 'active')]"/>
+                <filter name="inactive_stations" string="Неактивні станції"
+                        domain="[('status', '=', 'inactive')]"/>
+                <filter name="error_stations" string="З помилками"
+                        domain="[('status', 'in', ['error', 'sync_error'])]"/>
+                <filter name="maintenance_stations" string="На обслуговуванні"
+                        domain="[('status', '=', 'maintenance')]"/>
+
+                <separator/>
+                <filter name="producing_power" string="Генерують енергію"
+                        domain="[('current_power', '>', 0)]"/>
+                <filter name="zero_power" string="Нульова потужність"
+                        domain="[('current_power', '=', 0)]"/>
+
+                <separator/>
+                <filter name="never_synced" string="Ніколи не синхронізувались"
+                        domain="[('last_sync', '=', False)]"/>
+                <filter name="synced_today" string="Синхронізувались сьогодні"
+                        domain="[('last_sync', '>=', datetime.datetime.combine(context_today(), datetime.time(0,0,0)))]"/>
+                <filter name="old_sync" string="Застарілі дані (>2 год)"
+                        domain="[('last_sync', '&lt;', datetime.datetime.now() - datetime.timedelta(hours=2))]"/>
+
+                <separator/>
+                <filter name="high_priority" string="Високий пріоритет"
+                        domain="[('sync_priority', '&lt;=', 3)]"/>
+                <filter name="low_priority" string="Низький пріоритет"
+                        domain="[('sync_priority', '&gt;=', 8)]"/>
+
+                <group expand="0" string="Групувати за">
+                    <filter name="group_by_status" string="Статусом"
+                            context="{'group_by': 'status'}"/>
+                    <filter name="group_by_region" string="Регіоном"
+                            context="{'group_by': 'region'}"/>
+                    <filter name="group_by_batch_group" string="Групою пакетної обробки"
+                            context="{'group_by': 'batch_group'}"/>
+                    <filter name="group_by_sync_priority" string="Пріоритетом синхронізації"
+                            context="{'group_by': 'sync_priority'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Kanban представление для станций -->
+    <record id="smartlogger_station_view_kanban" model="ir.ui.view">
+        <field name="name">smartlogger.station.kanban</field>
+        <field name="model">smartlogger.station</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="status">
+                <field name="id"/>
+                <field name="name"/>
+                <field name="station_code"/>
+                <field name="status"/>
+                <field name="current_power"/>
+                <field name="capacity"/>
+                <field name="daily_energy"/>
+                <field name="last_sync"/>
+                <field name="region"/>
+
+                <templates>
+                    <t t-name="kanban-box">
+                        <div class="oe_kanban_card oe_kanban_global_click">
+                            <div class="oe_kanban_content">
+                                <div class="row">
+                                    <div class="col-8">
+                                        <strong><field name="name"/></strong><br/>
+                                        <span class="text-muted"><field name="station_code"/></span>
+                                        <t t-if="record.region.raw_value">
+                                            | <span class="text-muted"><field name="region"/></span>
+                                        </t>
+                                    </div>
+                                    <div class="col-4 text-right">
+                                        <span class="badge"
+                                              t-att-class="record.status.raw_value == 'active' ? 'badge-success' :
+                                                         record.status.raw_value == 'inactive' ? 'badge-secondary' :
+                                                         record.status.raw_value == 'maintenance' ? 'badge-warning' : 'badge-danger'">
+                                            <field name="status"/>
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div class="row mt-2">
+                                    <div class="col-6">
+                                        <strong><field name="current_power"/> кВт</strong><br/>
+                                        <span class="text-muted">Поточна потужність</span>
+                                    </div>
+                                    <div class="col-6">
+                                        <strong><field name="daily_energy"/> кВт·год</strong><br/>
+                                        <span class="text-muted">Сьогодні</span>
+                                    </div>
+                                </div>
+
+                                <div class="row mt-2">
+                                    <div class="col-12">
+                                        <t t-if="record.capacity.raw_value > 0">
+                                            <div class="progress" style="height: 10px;">
+                                                <div class="progress-bar bg-success"
+                                                     t-att-style="'width: ' + Math.min((record.current_power.raw_value / record.capacity.raw_value) * 100, 100) + '%'">
+                                                </div>
+                                            </div>
+                                            <small class="text-muted">
+                                                Ефективність: <t t-esc="Math.round((record.current_power.raw_value / record.capacity.raw_value) * 100)"/>%
+                                            </small>
+                                        </t>
+                                    </div>
+                                </div>
+
+                                <div class="row mt-2">
+                                    <div class="col-12">
+                                        <small class="text-muted">
+                                            Остання синхронізація:
+                                            <t t-if="record.last_sync.raw_value">
+                                                <field name="last_sync"/>
+                                            </t>
+                                            <t t-else="">
+                                                Ніколи
+                                            </t>
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- Обновленная дія для станций -->
+    <record id="action_smartlogger_station" model="ir.actions.act_window">
+        <field name="name">Станції SmartLogger</field>
+        <field name="res_model">smartlogger.station</field>
+        <field name="view_mode">kanban,tree,form</field>
+        <field name="context">{
+            'search_default_active_stations': 1,
+            'search_default_group_by_status': 1
+        }</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Тут будуть відображатися ваші станції SmartLogger
+            </p>
+            <p>
+                Станції автоматично імпортуються під час синхронізації з Huawei FusionSolar API.<br/>
+                Якщо станції відсутні, запустіть синхронізацію в розділі "Операції".
+            </p>
+            <p>
+                <strong>Статуси станцій:</strong><br/>
+                🟢 <strong>Активна</strong> - генерує енергію<br/>
+                🔵 <strong>Неактивна</strong> - не генерує енергію (ніч, хмарність)<br/>
+                🟡 <strong>Обслуговування</strong> - на технічному обслуговуванні<br/>
+                🔴 <strong>Помилка</strong> - проблеми з підключенням або синхронізацією<br/>
+            </p>
+        </field>
+    </record>
 </odoo>
