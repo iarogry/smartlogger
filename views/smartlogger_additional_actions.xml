@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- ФАЙЛ: views/smartlogger_additional_actions.xml -->
-<!-- СОЗДАТЬ НОВЫЙ ФАЙЛ! (этого файла нет в проекте) -->
+<!-- ФАЙЛ: views/smartlogger_additional_actions.xml для Odoo 17 -->
+
 
 <odoo>
     <!-- ========================================== -->
     <!-- ДОПОЛНИТЕЛЬНЫЕ ДЕЙСТВИЯ ДЛЯ SMARTLOGGER   -->
+    <!-- ОПТИМИЗИРОВАНЫ ДЛЯ ODOO 17                -->
     <!-- ========================================== -->
 
     <!-- ==========================================
@@ -19,10 +20,14 @@
         <field name="context">{'search_default_group_by_status': 1}</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">
-                Kanban представление ваших станцій SmartLogger
+                Kanban представление ваших станцій SmartLogger (Odoo 17)
             </p>
             <p>
                 Тут ви побачите всі станції, згруповані за статусами для зручного управління.
+            </p>
+            <p>
+                <strong>🆕 Покращення в Odoo 17:</strong>
+                Швидше завантаження, кращі візуальні ефекти та покращена інтерактивність!
             </p>
         </field>
     </record>
@@ -40,6 +45,9 @@
             </p>
             <p>
                 Це означає, що всі ваші станції працюють без помилок синхронізації.
+            </p>
+            <p>
+                <strong>🆕 В Odoo 17:</strong> Покращена діагностика помилок та автоматичні поради для вирішення проблем.
             </p>
         </field>
     </record>
@@ -62,7 +70,7 @@
         <field name="context">{'create': False, 'delete': False}</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">
-                Управління автоматичними завданнями SmartLogger
+                Управління автоматичними завданнями SmartLogger (Odoo 17)
             </p>
             <p>Тут ви можете:</p>
             <ul>
@@ -71,6 +79,9 @@
                 <li>Переглянути статус виконання завдань</li>
                 <li>Налаштувати додаткові завдання обслуговування</li>
             </ul>
+            <p>
+                <strong>🆕 Нові можливості:</strong> Покращений інтерфейс управління Cron завданнями з детальною статистикою.
+            </p>
         </field>
     </record>
 
@@ -83,13 +94,16 @@
         <field name="context">{'create': True, 'delete': True}</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">
-                Розширені налаштування SmartLogger
+                Розширені налаштування SmartLogger (Odoo 17)
             </p>
             <p>
                 <strong>Увага!</strong> Змінюйте ці параметри тільки якщо розумієте їх призначення.
             </p>
             <p>
                 Тут можна додати нові параметри конфігурації або змінити існуючі.
+            </p>
+            <p>
+                <strong>🆕 В Odoo 17:</strong> Покращений інтерфейс редагування з підказками та валідацією.
             </p>
         </field>
     </record>
@@ -103,17 +117,56 @@
         <field name="context">{'default_sync_mode': 'data_only', 'cleanup_mode': True}</field>
     </record>
 
+    <!-- Аналітика та звіти (нова функція для Odoo 17) -->
+    <record id="action_smartlogger_analytics" model="ir.actions.act_window">
+        <field name="name">Аналітика станцій</field>
+        <field name="res_model">smartlogger.data</field>
+        <field name="view_mode">graph,pivot,tree</field>
+        <field name="context">{'search_default_this_month': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                🆕 Потужна аналітика станцій в Odoo 17
+            </p>
+            <p>
+                Новий інструмент для глибокого аналізу продуктивності ваших сонячних станцій.
+            </p>
+            <ul>
+                <li><strong>Графічний аналіз:</strong> Візуалізація трендів та паттернів</li>
+                <li><strong>Зведені таблиці:</strong> Багатовимірний аналіз даних</li>
+                <li><strong>Порівняння станцій:</strong> Ефективність між різними установками</li>
+                <li><strong>Експорт звітів:</strong> Дані для зовнішнього аналізу</li>
+            </ul>
+        </field>
+    </record>
+
+    <!-- ==========================================
+         СЕРВЕРНЫЕ ДЕЙСТВИЯ (ir.actions.server)
+         ОПТИМИЗИРОВАНЫ ДЛЯ ODOO 17
+         ========================================== -->
+
     <!-- Сброс блокировки API -->
     <record id="action_reset_api_block" model="ir.actions.server">
         <field name="name">Скинути блокування API</field>
         <field name="model_id" ref="smartlogger.model_smartlogger_station"/>
         <field name="state">code</field>
         <field name="code">
-# Сбрасываем блокировку API
+# Сбрасываем блокировку API (оптимизировано для Odoo 17)
 try:
     result = env['smartlogger.station'].reset_api_block()
     if result:
-        raise UserWarning('Блокування API скинуто успішно! Автоматичні завдання відновлено.')
+        # Используем новую систему уведомлений Odoo 17
+        action = {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'type': 'success',
+                'title': 'Блокування API скинуто!',
+                'message': 'Автоматичні завдання відновлено. Можете запускати синхронізацію.',
+                'sticky': False,
+                'fadeout': 5000,
+            }
+        }
+        return action
     else:
         raise UserWarning('Блокування API скинуто.')
 except Exception as e:
@@ -127,7 +180,7 @@ except Exception as e:
         <field name="model_id" ref="smartlogger.model_smartlogger_station"/>
         <field name="state">code</field>
         <field name="code">
-# Проверяем статус API и показываем информацию
+# Проверяем статус API и показываем информацию (Odoo 17)
 IrConfigParameter = env['ir.config_parameter'].sudo()
 
 api_blocked = IrConfigParameter.get_param('huawei.fusionsolar.api_blocked', 'false') == 'true'
@@ -138,14 +191,16 @@ last_successful_sync = IrConfigParameter.get_param('huawei.fusionsolar.last_succ
 block_reason = IrConfigParameter.get_param('huawei.fusionsolar.block_reason', '')
 
 info_lines = []
-info_lines.append('=== СТАТУС FUSIONSOLAR API ===')
+info_lines.append('=== СТАТУС FUSIONSOLAR API (Odoo 17) ===')
 info_lines.append('')
 
 if api_blocked:
     info_lines.append('🔴 Статус API: ЗАБЛОКОВАНИЙ')
     info_lines.append('📋 Причина: %s' % (block_reason or 'Невідомо'))
+    status_type = 'danger'
 else:
     info_lines.append('🟢 Статус API: Активний')
+    status_type = 'success'
 
 info_lines.append('📊 Кількість помилок автентифікації: %d' % auth_error_count)
 
@@ -166,24 +221,22 @@ else:
     info_lines.append('💡 API працює нормально')
 
 message = '\n'.join(info_lines)
-raise UserWarning(message)
+
+# Используем улучшенную систему уведомлений Odoo 17
+action = {
+    'type': 'ir.actions.client',
+    'tag': 'display_notification',
+    'params': {
+        'type': status_type,
+        'title': 'Статус FusionSolar API',
+        'message': message,
+        'sticky': True,
+        'className': 'o_notification_manager_message'
+    }
+}
+return action
         </field>
     </record>
-
-    <!-- ==========================================
-         URL ДЕЙСТВИЯ (ir.actions.act_url)
-         ========================================== -->
-
-    <!-- Документация API -->
-    <record id="action_smartlogger_api_docs" model="ir.actions.act_url">
-        <field name="name">Документація Huawei FusionSolar API</field>
-        <field name="url">https://forum.huawei.com/enterprise/en/communicate-with-fusionsolar-through-an-openapi-account/thread/591478-100027</field>
-        <field name="target">new</field>
-    </record>
-
-    <!-- ==========================================
-         СЕРВЕРНЫЕ ДЕЙСТВИЯ (ir.actions.server)
-         ========================================== -->
 
     <!-- Быстрая синхронизация всех станций -->
     <record id="server_action_quick_sync_all" model="ir.actions.server">
@@ -193,11 +246,23 @@ raise UserWarning(message)
         <field name="binding_view_types">list</field>
         <field name="state">code</field>
         <field name="code">
-# Запуск быстрой синхронизации для всех станций
+# Запуск быстрой синхронизации для всех станций (Odoo 17)
 try:
     result = env['smartlogger.station'].sync_fusionsolar_data()
     if result.get('success'):
-        raise UserWarning('Синхронізація завершена успішно!')
+        stations_count = result.get('stations_processed', 0)
+        action = {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'type': 'success',
+                'title': 'Синхронізація завершена!',
+                'message': f'Успішно оброблено {stations_count} станцій.',
+                'sticky': False,
+                'fadeout': 3000,
+            }
+        }
+        return action
     else:
         raise UserError('Помилка синхронізації: %s' % result.get('message', 'Невідома помилка'))
 except Exception as e:
@@ -213,9 +278,27 @@ except Exception as e:
         <field name="binding_view_types">list</field>
         <field name="state">code</field>
         <field name="code">
-# Помечаем выбранные станции как на обслуживании
+# Помечаем выбранные станции как на обслуживании (Odoo 17)
 records.write({'status': 'maintenance'})
-raise UserWarning('Вибрані станції позначено як "На обслуговуванні"')
+
+# Добавляем сообщение в chatter для каждой станции
+for station in records:
+    station.message_post(
+        body=f'Станція переведена в режим обслуговування користувачем {env.user.name}',
+        message_type='notification'
+    )
+
+action = {
+    'type': 'ir.actions.client',
+    'tag': 'display_notification',
+    'params': {
+        'type': 'info',
+        'title': 'Статус оновлено',
+        'message': f'Вибрані станції ({len(records)}) позначено як "На обслуговуванні"',
+        'sticky': False,
+    }
+}
+return action
         </field>
     </record>
 
@@ -227,20 +310,48 @@ raise UserWarning('Вибрані станції позначено як "На �
         <field name="binding_view_types">list</field>
         <field name="state">code</field>
         <field name="code">
-# Сбрасываем ошибки станций с проблемами
+# Сбрасываем ошибки станций с проблемами (Odoo 17)
 error_stations = records.filtered(lambda r: r.status in ['error', 'sync_error'])
 if error_stations:
     error_stations.write({
         'status': 'active',
         'last_error': False
     })
-    raise UserWarning('Помилки скинуто для %d станцій' % len(error_stations))
+
+    # Добавляем сообщения в chatter
+    for station in error_stations:
+        station.message_post(
+            body=f'Помилки скинуто користувачем {env.user.name}. Станція повернута в активний режим.',
+            message_type='notification'
+        )
+
+    action = {
+        'type': 'ir.actions.client',
+        'tag': 'display_notification',
+        'params': {
+            'type': 'success',
+            'title': 'Помилки скинуто',
+            'message': f'Помилки скинуто для {len(error_stations)} станцій',
+            'sticky': False,
+        }
+    }
+    return action
 else:
-    raise UserWarning('Не знайдено станцій з помилками серед вибраних')
+    action = {
+        'type': 'ir.actions.client',
+        'tag': 'display_notification',
+        'params': {
+            'type': 'warning',
+            'title': 'Немає помилок',
+            'message': 'Не знайдено станцій з помилками серед вибраних',
+            'sticky': False,
+        }
+    }
+    return action
         </field>
     </record>
 
-    <!-- Простой экспорт информации о станциях -->
+    <!-- Простой экспорт информации о станциях (улучшенный для Odoo 17) -->
     <record id="server_action_show_station_info" model="ir.actions.server">
         <field name="name">Показати інформацію про станції</field>
         <field name="model_id" ref="smartlogger.model_smartlogger_station"/>
@@ -248,30 +359,54 @@ else:
         <field name="binding_view_types">list</field>
         <field name="state">code</field>
         <field name="code">
-# Показываем информацию о выбранных станциях
+# Показываем информацию о выбранных станциях (Odoo 17)
 info_lines = []
-info_lines.append('=== ІНФОРМАЦІЯ ПРО ВИБРАНІ СТАНЦІЇ ===')
+info_lines.append('=== ІНФОРМАЦІЯ ПРО ВИБРАНІ СТАНЦІЇ (Odoo 17) ===')
 info_lines.append('')
 
+total_capacity = 0
+total_current_power = 0
+total_daily_energy = 0
+
 for station in records:
-    info_lines.append('Станція: %s' % station.name)
-    info_lines.append('  Код: %s' % station.station_code)
-    info_lines.append('  Статус: %s' % station.status)
-    info_lines.append('  Потужність: %.2f кВт' % station.current_power)
-    info_lines.append('  Добова енергія: %.2f кВт·год' % station.daily_energy)
+    info_lines.append('🏭 Станція: %s' % station.name)
+    info_lines.append('  📋 Код: %s' % station.station_code)
+    info_lines.append('  📊 Статус: %s' % station.status)
+    info_lines.append('  ⚡ Потужність: %.2f кВт' % station.current_power)
+    info_lines.append('  🔋 Добова енергія: %.2f кВт·год' % station.daily_energy)
+    info_lines.append('  🎯 Ефективність: %.1f%%' % station.efficiency_percentage)
+    info_lines.append('  🌐 Онлайн: %s' % ('Так' if station.is_online else 'Ні'))
     if station.last_sync:
-        info_lines.append('  Остання синхронізація: %s' % station.last_sync)
+        info_lines.append('  🔄 Остання синхронізація: %s' % station.last_sync)
     info_lines.append('')
 
-info_lines.append('Загалом станцій: %d' % len(records))
-total_power = sum(records.mapped('current_power'))
-total_energy = sum(records.mapped('daily_energy'))
-info_lines.append('Загальна потужність: %.2f кВт' % total_power)
-info_lines.append('Загальна добова енергія: %.2f кВт·год' % total_energy)
+    total_capacity += station.capacity
+    total_current_power += station.current_power
+    total_daily_energy += station.daily_energy
 
-# Выводим информацию
+info_lines.append('📈 ЗАГАЛЬНА СТАТИСТИКА:')
+info_lines.append('Загалом станцій: %d' % len(records))
+info_lines.append('Загальна номінальна потужність: %.2f кВт' % total_capacity)
+info_lines.append('Загальна поточна потужність: %.2f кВт' % total_current_power)
+info_lines.append('Загальна добова енергія: %.2f кВт·год' % total_daily_energy)
+if total_capacity > 0:
+    total_efficiency = (total_current_power / total_capacity) * 100
+    info_lines.append('Загальна ефективність: %.1f%%' % total_efficiency)
+
+# Выводим информацию используя новую систему уведомлений Odoo 17
 message = '\n'.join(info_lines)
-raise UserWarning(message)
+action = {
+    'type': 'ir.actions.client',
+    'tag': 'display_notification',
+    'params': {
+        'type': 'info',
+        'title': 'Інформація про станції',
+        'message': message,
+        'sticky': True,
+        'className': 'o_notification_manager_message_info'
+    }
+}
+return action
         </field>
     </record>
 
@@ -283,9 +418,27 @@ raise UserWarning(message)
         <field name="binding_view_types">list</field>
         <field name="state">code</field>
         <field name="code">
-# Устанавливаем высокий приоритет синхронизации
+# Устанавливаем высокий приоритет синхронизации (Odoo 17)
 records.write({'sync_priority': 1})
-raise UserWarning('Для %d станцій встановлено високий пріоритет синхронізації' % len(records))
+
+# Добавляем сообщения в chatter
+for station in records:
+    station.message_post(
+        body=f'Встановлено високий пріоритет синхронізації користувачем {env.user.name}',
+        message_type='notification'
+    )
+
+action = {
+    'type': 'ir.actions.client',
+    'tag': 'display_notification',
+    'params': {
+        'type': 'success',
+        'title': 'Пріоритет оновлено',
+        'message': f'Для {len(records)} станцій встановлено високий пріоритет синхронізації',
+        'sticky': False,
+    }
+}
+return action
         </field>
     </record>
 
@@ -297,14 +450,32 @@ raise UserWarning('Для %d станцій встановлено високи�
         <field name="binding_view_types">list</field>
         <field name="state">code</field>
         <field name="code">
-# Принудительная синхронизация выбранных станций
+# Принудительная синхронизация выбранных станций (Odoo 17)
 try:
     # Обновляем время последней синхронизации и статус
     records.write({
         'last_sync': fields.Datetime.now(),
         'status': 'active'
     })
-    raise UserWarning('Примусова синхронізація виконана для %d станцій' % len(records))
+
+    # Добавляем сообщения в chatter
+    for station in records:
+        station.message_post(
+            body=f'Примусова синхронізація виконана користувачем {env.user.name}',
+            message_type='notification'
+        )
+
+    action = {
+        'type': 'ir.actions.client',
+        'tag': 'display_notification',
+        'params': {
+            'type': 'success',
+            'title': 'Синхронізація виконана',
+            'message': f'Примусова синхронізація виконана для {len(records)} станцій',
+            'sticky': False,
+        }
+    }
+    return action
 except Exception as e:
     raise UserError('Помилка примусової синхронізації: %s' % str(e))
         </field>
@@ -318,27 +489,68 @@ except Exception as e:
         <field name="binding_view_types">list</field>
         <field name="state">code</field>
         <field name="code">
-# Группируем станции по регионам
+# Группируем станции по регионам (Odoo 17)
 regions = {}
 for station in records:
     region = station.region or 'Без регіону'
     if region not in regions:
-        regions[region] = []
-    regions[region].append(station.name)
+        regions[region] = {
+            'stations': [],
+            'total_capacity': 0,
+            'total_power': 0,
+            'total_energy': 0
+        }
+    regions[region]['stations'].append(station.name)
+    regions[region]['total_capacity'] += station.capacity
+    regions[region]['total_power'] += station.current_power
+    regions[region]['total_energy'] += station.daily_energy
 
 info_lines = []
-info_lines.append('=== ГРУПУВАННЯ ЗА РЕГІОНАМИ ===')
+info_lines.append('=== ГРУПУВАННЯ ЗА РЕГІОНАМИ (Odoo 17) ===')
 info_lines.append('')
 
-for region, station_names in regions.items():
-    info_lines.append('%s (%d станцій):' % (region, len(station_names)))
-    for name in station_names:
-        info_lines.append('  • %s' % name)
+for region, data in regions.items():
+    stations = data['stations']
+    info_lines.append('🌍 %s (%d станцій):' % (region, len(stations)))
+    info_lines.append('  ⚡ Загальна потужність: %.2f кВт' % data['total_capacity'])
+    info_lines.append('  🔋 Поточна потужність: %.2f кВт' % data['total_power'])
+    info_lines.append('  📊 Добова енергія: %.2f кВт·год' % data['total_energy'])
+    info_lines.append('  📋 Станції:')
+    for name in stations:
+        info_lines.append('    • %s' % name)
     info_lines.append('')
 
 message = '\n'.join(info_lines)
-raise UserWarning(message)
+action = {
+    'type': 'ir.actions.client',
+    'tag': 'display_notification',
+    'params': {
+        'type': 'info',
+        'title': 'Групування за регіонами',
+        'message': message,
+        'sticky': True,
+    }
+}
+return action
         </field>
+    </record>
+
+    <!-- ==========================================
+         URL ДЕЙСТВИЯ (ir.actions.act_url)
+         ========================================== -->
+
+    <!-- Документация API -->
+    <record id="action_smartlogger_api_docs" model="ir.actions.act_url">
+        <field name="name">Документація Huawei FusionSolar API</field>
+        <field name="url">https://forum.huawei.com/enterprise/en/communicate-with-fusionsolar-through-an-openapi-account/thread/591478-100027</field>
+        <field name="target">new</field>
+    </record>
+
+    <!-- Новое: ссылка на Odoo 17 документацию -->
+    <record id="action_odoo17_docs" model="ir.actions.act_url">
+        <field name="name">Документація Odoo 17</field>
+        <field name="url">https://www.odoo.com/documentation/17.0/</field>
+        <field name="target">new</field>
     </record>
 
 </odoo>

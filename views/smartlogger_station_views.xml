@@ -1,3 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- ФАЙЛ: views/smartlogger_station_views.xml для Odoo 17 -->
+
 <odoo>
     <record id="smartlogger_station_view_form" model="ir.ui.view">
         <field name="name">smartlogger.station.form</field>
@@ -63,7 +66,7 @@
                         <group string="Статистика синхронізації">
                             <field name="successful_syncs" readonly="1"/>
                             <field name="sync_attempts" readonly="1"/>
-                            <field name="last_error" readonly="1" attrs="{'invisible': [('last_error', '=', False)]}"/>
+                            <field name="last_error" readonly="1" invisible="not last_error"/>
                         </group>
                     </group>
 
@@ -75,10 +78,10 @@
                                     <div class="o_field_value">
                                         <field name="current_power" invisible="1"/>
                                         <field name="capacity" invisible="1"/>
-                                        <span attrs="{'invisible': [('capacity', '=', 0)]}">
+                                        <span invisible="capacity == 0">
                                             <t t-esc="round((record.current_power.raw_value / record.capacity.raw_value) * 100, 1) if record.capacity.raw_value > 0 else 0"/>%
                                         </span>
-                                        <span attrs="{'invisible': [('capacity', '!=', 0)]}">
+                                        <span invisible="capacity != 0">
                                             Не вказана потужність
                                         </span>
                                     </div>
@@ -88,13 +91,13 @@
                                 <div class="o_field_widget">
                                     <span class="o_form_label">Статус з'єднання</span>
                                     <div class="o_field_value">
-                                        <span class="badge badge-success" attrs="{'invisible': ['|', ('last_sync', '=', False), ('last_sync', '&lt;', datetime.datetime.now() - datetime.timedelta(hours=2))]}">
+                                        <span class="badge badge-success" invisible="not last_sync or last_sync &lt; context_today() - datetime.timedelta(hours=2)">
                                             Підключено
                                         </span>
-                                        <span class="badge badge-warning" attrs="{'invisible': ['|', ('last_sync', '=', False), ('last_sync', '&gt;=', datetime.datetime.now() - datetime.timedelta(hours=2))]}">
-                                            Застаріли дані
+                                        <span class="badge badge-warning" invisible="not last_sync or last_sync &gt;= context_today() - datetime.timedelta(hours=2)">
+                                            Застарілі дані
                                         </span>
-                                        <span class="badge badge-danger" attrs="{'invisible': [('last_sync', '!=', False)]}">
+                                        <span class="badge badge-danger" invisible="last_sync">
                                             Ніколи не синхронізувалось
                                         </span>
                                     </div>
@@ -103,17 +106,17 @@
                         </div>
                     </group>
 
-                    <div class="alert alert-warning" role="alert" attrs="{'invisible': [('status', '!=', 'error')]}">
+                    <div class="alert alert-warning" role="alert" invisible="status != 'error'">
                         <strong>Станція має статус помилки!</strong><br/>
                         Перевірте підключення та налаштування API. Деталі помилки див. у полі "Остання помилка".
                     </div>
 
-                    <div class="alert alert-info" role="alert" attrs="{'invisible': [('last_sync', '!=', False)]}">
+                    <div class="alert alert-info" role="alert" invisible="last_sync">
                         <strong>Станція ще не синхронізувалась</strong><br/>
                         Запустіть синхронізацію для отримання актуальних даних з Huawei FusionSolar.
                     </div>
 
-                    <div class="alert alert-warning" role="alert" attrs="{'invisible': ['|', ('last_sync', '=', False), ('last_sync', '&gt;=', datetime.datetime.now() - datetime.timedelta(hours=2))]}">
+                    <div class="alert alert-warning" role="alert" invisible="not last_sync or last_sync &gt;= context_today() - datetime.timedelta(hours=2)">
                         <strong>Дані застарілі</strong><br/>
                         Остання синхронізація була більше 2 годин тому. Рекомендується перевірити роботу автоматичної синхронізації.
                     </div>
@@ -137,7 +140,8 @@
                   decoration-info="status == 'inactive'"
                   decoration-warning="status == 'maintenance'"
                   decoration-danger="status in ['error', 'sync_error']"
-                  decoration-muted="current_power == 0">
+                  decoration-muted="current_power == 0"
+                  multi_edit="1">
 
                 <field name="name"/>
                 <field name="station_code"/>
@@ -189,9 +193,9 @@
                 <filter name="never_synced" string="Ніколи не синхронізувались"
                         domain="[('last_sync', '=', False)]"/>
                 <filter name="synced_today" string="Синхронізувались сьогодні"
-                        domain="[('last_sync', '>=', datetime.datetime.combine(context_today(), datetime.time(0,0,0)))]"/>
+                        domain="[('last_sync', '>=', context_today())]"/>
                 <filter name="old_sync" string="Застарілі дані (>2 год)"
-                        domain="[('last_sync', '&lt;', datetime.datetime.now() - datetime.timedelta(hours=2))]"/>
+                        domain="[('last_sync', '&lt;', (datetime.datetime.now() - datetime.timedelta(hours=2)).strftime('%Y-%m-%d %H:%M:%S'))]"/>
 
                 <separator/>
                 <filter name="high_priority" string="Високий пріоритет"
@@ -217,7 +221,7 @@
         <field name="name">smartlogger.station.kanban</field>
         <field name="model">smartlogger.station</field>
         <field name="arch" type="xml">
-            <kanban default_group_by="status">
+            <kanban default_group_by="status" quick_create="false">
                 <field name="id"/>
                 <field name="name"/>
                 <field name="station_code"/>

@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- ФАЙЛ: views/smartlogger_dashboard_views.xml для Odoo 17 -->
+
 <odoo>
-    <!-- Форма для дашборду -->
+    <!-- Форма для дашборду з покращеннями для Odoo 17 -->
     <record id="smartlogger_dashboard_view_form" model="ir.ui.view">
         <field name="name">smartlogger.dashboard.form</field>
         <field name="model">smartlogger.dashboard</field>
@@ -8,41 +10,336 @@
             <form string="Дашборд SmartLogger" create="false" edit="false" delete="false">
                 <header>
                     <button name="action_refresh_data" string="Оновити дані" type="object" class="btn-primary"/>
+                    <button name="%(action_sync_data_wizard)d" string="Синхронізувати" type="action" class="btn-secondary"/>
+                    <button name="%(action_smartlogger_analytics)d" string="🆕 Аналітика" type="action" class="btn-info"/>
                 </header>
                 <sheet>
                     <div class="oe_title">
-                        <h1>Дашборд SmartLogger</h1>
-                        <p class="text-muted">Загальний огляд всіх станцій</p>
+                        <h1>🔋 Дашборд SmartLogger</h1>
+                        <div class="oe_subtitle">
+                            <p class="text-muted">Загальний огляд всіх сонячних станцій (Odoo 17)</p>
+                        </div>
                     </div>
-                    <group>
-                        <group string="Загальна статистика">
-                            <field name="total_stations"/>
-                            <field name="total_capacity"/>
+
+                    <!-- Основні KPI в красивых карточках -->
+                    <div class="row mt-3">
+                        <div class="col-lg-3 col-md-6">
+                            <div class="card border-primary">
+                                <div class="card-body text-center">
+                                    <h4 class="card-title text-primary">
+                                        <i class="fa fa-industry"></i>
+                                        <field name="total_stations" readonly="1"/>
+                                    </h4>
+                                    <p class="card-text">Загальна кількість станцій</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <div class="card border-success">
+                                <div class="card-body text-center">
+                                    <h4 class="card-title text-success">
+                                        <i class="fa fa-bolt"></i>
+                                        <field name="total_capacity" readonly="1"/> кВт
+                                    </h4>
+                                    <p class="card-text">Загальна потужність</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <div class="card border-warning">
+                                <div class="card-body text-center">
+                                    <h4 class="card-title text-warning">
+                                        <i class="fa fa-flash"></i>
+                                        <field name="current_total_power" readonly="1"/> кВт
+                                    </h4>
+                                    <p class="card-text">Поточна потужність</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <div class="card border-info">
+                                <div class="card-body text-center">
+                                    <h4 class="card-title text-info">
+                                        <i class="fa fa-battery-three-quarters"></i>
+                                        <field name="daily_total_energy" readonly="1"/> кВт·год
+                                    </h4>
+                                    <p class="card-text">Добова енергія</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Група основних показників -->
+                    <group string="📊 Детальна статистика">
+                        <group string="Основні показники">
+                            <field name="total_stations" readonly="1"
+                                   widget="integer"
+                                   decoration-bf="total_stations > 0"/>
+                            <field name="total_capacity" readonly="1"
+                                   widget="monetary"
+                                   options="{'currency_field': False, 'field_digits': [16,2]}"/>
                         </group>
                         <group string="Поточні показники">
-                            <field name="current_total_power"/>
-                            <field name="daily_total_energy"/>
+                            <field name="current_total_power" readonly="1"
+                                   widget="monetary"
+                                   options="{'currency_field': False, 'field_digits': [16,2]}"
+                                   decoration-success="current_total_power > 0"
+                                   decoration-muted="current_total_power == 0"/>
+                            <field name="daily_total_energy" readonly="1"
+                                   widget="monetary"
+                                   options="{'currency_field': False, 'field_digits': [16,2]}"/>
                         </group>
                     </group>
 
-                    <separator string="Швидкі дії"/>
-                    <div class="oe_button_box">
-                        <button name="%(action_smartlogger_station)d"
-                                type="action"
-                                string="Переглянути станції"
-                                class="btn-primary"/>
-                        <button name="%(action_sync_data_wizard)d"
-                                type="action"
-                                string="Синхронізувати дані"
-                                class="btn-secondary"/>
+                    <!-- Швидкі дії з покращеним дизайном для Odoo 17 -->
+                    <group string="🚀 Швидкі дії">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <button name="%(action_smartlogger_station)d"
+                                        type="action"
+                                        string="🏭 Переглянути станції"
+                                        class="btn btn-primary btn-lg btn-block"
+                                        help="Відкрити список всіх станцій"/>
+                            </div>
+                            <div class="col-md-4">
+                                <button name="%(action_sync_data_wizard)d"
+                                        type="action"
+                                        string="🔄 Синхронізувати дані"
+                                        class="btn btn-secondary btn-lg btn-block"
+                                        help="Запустити мастер синхронізації"/>
+                            </div>
+                            <div class="col-md-4">
+                                <button name="%(action_smartlogger_analytics)d"
+                                        type="action"
+                                        string="📈 Аналітика (🆕)"
+                                        class="btn btn-info btn-lg btn-block"
+                                        help="Відкрити потужну аналітику Odoo 17"/>
+                            </div>
+                        </div>
+                        <div class="row mt-2">
+                            <div class="col-md-4">
+                                <button name="%(action_smartlogger_station_kanban)d"
+                                        type="action"
+                                        string="🗂️ Kanban станцій"
+                                        class="btn btn-outline-primary btn-block"
+                                        help="Kanban представление станцій"/>
+                            </div>
+                            <div class="col-md-4">
+                                <button name="%(action_smartlogger_error_stations)d"
+                                        type="action"
+                                        string="⚠️ Станції з помилками"
+                                        class="btn btn-outline-warning btn-block"
+                                        help="Показати проблемні станції"/>
+                            </div>
+                            <div class="col-md-4">
+                                <button name="%(action_smartlogger_config)d"
+                                        type="action"
+                                        string="⚙️ Налаштування API"
+                                        class="btn btn-outline-secondary btn-block"
+                                        help="Конфігурація підключення"/>
+                            </div>
+                        </div>
+                    </group>
+
+                    <!-- Інформаційні блоки з покращеним дизайном -->
+                    <div class="alert alert-info mt-3" role="alert">
+                        <h5 class="alert-heading">
+                            <i class="fa fa-info-circle"></i> Про дашборд SmartLogger
+                        </h5>
+                        <p><strong>Цей дашборд відображає агреговані дані всіх станцій SmartLogger.</strong></p>
+                        <p>Для детального аналізу скористайтеся окремими розділами станцій та історичних даних.</p>
+                        <hr>
+                        <p class="mb-0">
+                            <strong>🆕 Нові можливості в Odoo 17:</strong>
+                            <br/>• Покращена продуктивність та швидкість завантаження
+                            <br/>• Розширена аналітика з графіками та зведеними таблицями
+                            <br/>• Кращі візуальні ефекти та інтерактивність
+                            <br/>• Покращена мобільна адаптивність
+                        </p>
+                        </hr>
                     </div>
 
-                    <div class="alert alert-info mt-3" role="alert">
-                        <p><strong>Примітка:</strong> Цей дашборд відображає агреговані дані всіх станцій SmartLogger.</p>
-                        <p>Для детального аналізу скористайтеся окремими розділами станцій та історичних даних.</p>
+                    <!-- Системна інформація -->
+                    <div class="alert alert-success mt-3" role="alert">
+                        <h6 class="alert-heading">
+                            <i class="fa fa-cogs"></i> Системна інформація
+                        </h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <small class="text-muted">
+                                    <strong>Версія модуля:</strong> 17.0.2.0.0<br/>
+                                    <strong>Платформа:</strong> Odoo 17 Community/Enterprise<br/>
+                                    <strong>API:</strong> Huawei FusionSolar Northbound
+                                </small>
+                            </div>
+                            <div class="col-md-6">
+                                <small class="text-muted">
+                                    <strong>Автор:</strong> Ярослав Гришин / HD Group LLC<br/>
+                                    <strong>Веб-сайт:</strong> https://www.hlibodar.com.ua<br/>
+                                    <strong>Підтримка:</strong> Професійна підтримка доступна
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Додаткові метрики (для майбутніх версій) -->
+                    <div class="alert alert-light mt-3" role="alert" invisible="total_stations == 0">
+                        <h6 class="alert-heading">
+                            <i class="fa fa-chart-line"></i> Швидкі підсумки
+                        </h6>
+                        <div class="row">
+                            <div class="col-md-3">
+                                <small>
+                                    <strong>Середня потужність на станцію:</strong><br/>
+                                    <span class="text-primary">
+                                        <t t-if="total_stations > 0">
+                                            <t t-esc="round(current_total_power / total_stations, 2)"/> кВт
+                                        </t>
+                                        <t t-else="">0 кВт</t>
+                                    </span>
+                                </small>
+                            </div>
+                            <div class="col-md-3">
+                                <small>
+                                    <strong>Загальна ефективність:</strong><br/>
+                                    <span class="text-success">
+                                        <t t-if="total_capacity > 0">
+                                            <t t-esc="round((current_total_power / total_capacity) * 100, 1)"/>%
+                                        </t>
+                                        <t t-else="">0%</t>
+                                    </span>
+                                </small>
+                            </div>
+                            <div class="col-md-3">
+                                <small>
+                                    <strong>Середня добова енергія:</strong><br/>
+                                    <span class="text-info">
+                                        <t t-if="total_stations > 0">
+                                            <t t-esc="round(daily_total_energy / total_stations, 2)"/> кВт·год
+                                        </t>
+                                        <t t-else="">0 кВт·год</t>
+                                    </span>
+                                </small>
+                            </div>
+                            <div class="col-md-3">
+                                <small>
+                                    <strong>Статус:</strong><br/>
+                                    <span class="badge badge-success" invisible="current_total_power == 0">
+                                        Активні станції
+                                    </span>
+                                    <span class="badge badge-secondary" invisible="current_total_power != 0">
+                                        Неактивні станції
+                                    </span>
+                                </small>
+                            </div>
+                        </div>
                     </div>
                 </sheet>
             </form>
+        </field>
+    </record>
+
+    <!-- Додаткове представлення дашборду в режимі kanban (нова функція) -->
+    <record id="smartlogger_dashboard_view_kanban" model="ir.ui.view">
+        <field name="name">smartlogger.dashboard.kanban</field>
+        <field name="model">smartlogger.dashboard</field>
+        <field name="arch" type="xml">
+            <kanban create="false" edit="false" delete="false">
+                <field name="total_stations"/>
+                <field name="total_capacity"/>
+                <field name="current_total_power"/>
+                <field name="daily_total_energy"/>
+
+                <templates>
+                    <t t-name="kanban-box">
+                        <div class="oe_kanban_card">
+                            <div class="oe_kanban_content">
+                                <div class="row">
+                                    <div class="col-12 text-center">
+                                        <h3 class="mb-3">🔋 SmartLogger Dashboard</h3>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-6 text-center border-right">
+                                        <h4 class="text-primary">
+                                            <t t-esc="record.total_stations.value"/>
+                                        </h4>
+                                        <small class="text-muted">Станцій</small>
+                                    </div>
+                                    <div class="col-6 text-center">
+                                        <h4 class="text-success">
+                                            <t t-esc="record.total_capacity.value"/> кВт
+                                        </h4>
+                                        <small class="text-muted">Потужність</small>
+                                    </div>
+                                </div>
+
+                                <hr/>
+
+                                <div class="row">
+                                    <div class="col-6 text-center border-right">
+                                        <h5 class="text-warning">
+                                            <t t-esc="record.current_total_power.value"/> кВт
+                                        </h5>
+                                        <small class="text-muted">Поточна</small>
+                                    </div>
+                                    <div class="col-6 text-center">
+                                        <h5 class="text-info">
+                                            <t t-esc="record.daily_total_energy.value"/> кВт·год
+                                        </h5>
+                                        <small class="text-muted">Сьогодні</small>
+                                    </div>
+                                </div>
+
+                                <div class="row mt-3">
+                                    <div class="col-12 text-center">
+                                        <t t-if="record.total_capacity.value > 0">
+                                            <div class="progress">
+                                                <div class="progress-bar bg-success"
+                                                     t-att-style="'width: ' + Math.min((record.current_total_power.value / record.total_capacity.value) * 100, 100) + '%'">
+                                                </div>
+                                            </div>
+                                            <small class="text-muted">
+                                                Ефективність: <t t-esc="Math.round((record.current_total_power.value / record.total_capacity.value) * 100)"/>%
+                                            </small>
+                                        </t>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- Оновлена дія для дашборду з підтримкою різних представлень -->
+    <record id="action_smartlogger_dashboard" model="ir.actions.act_window">
+        <field name="name">Дашборд SmartLogger</field>
+        <field name="res_model">smartlogger.dashboard</field>
+        <field name="view_mode">form,kanban</field>
+        <field name="target">current</field>
+        <field name="context">{'dashboard_mode': True}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Ласкаво просимо до дашборду SmartLogger (Odoo 17)!
+            </p>
+            <p>
+                Цей дашборд надає повний огляд вашої системи сонячних станцій з інтеграцією Huawei FusionSolar API.
+            </p>
+            <p>
+                <strong>🆕 Нові можливості Odoo 17:</strong>
+            </p>
+            <ul>
+                <li><strong>Покращена продуктивність:</strong> Швидше завантаження та рендеринг</li>
+                <li><strong>Розширена аналітика:</strong> Потужні інструменти аналізу даних</li>
+                <li><strong>Кращий UX:</strong> Інтуїтивний та сучасний інтерфейс</li>
+                <li><strong>Мобільна адаптивність:</strong> Оптимізовано для всіх пристроїв</li>
+            </ul>
+            <p>
+                Почніть з налаштування API параметрів та запуску першої синхронізації!
+            </p>
         </field>
     </record>
 </odoo>

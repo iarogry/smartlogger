@@ -1,26 +1,37 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- ФАЙЛ: views/smartlogger_data_views.xml -->
-<!-- ЗАМЕНИТЬ ПОЛНОСТЬЮ существующий файл -->
+<!-- ФАЙЛ: views/smartlogger_data_views.xml для Odoo 17 -->
 
 <odoo>
-    <!-- Дерево для історичних даних KPI -->
+    <!-- Дерево для історичних даних KPI з покращеннями для Odoo 17 -->
     <record id="smartlogger_data_view_tree" model="ir.ui.view">
         <field name="name">smartlogger.data.tree</field>
         <field name="model">smartlogger.data</field>
         <field name="arch" type="xml">
-            <tree string="Історичні дані KPI" create="false" edit="false" delete="false">
+            <tree string="Історичні дані KPI"
+                  create="false"
+                  edit="false"
+                  delete="false"
+                  export_xlsx="true"
+                  decoration-success="current_power > 50"
+                  decoration-warning="current_power > 0 and current_power &lt;= 50"
+                  decoration-muted="current_power == 0">
+
                 <field name="timestamp" width="150px"/>
                 <field name="station_id" width="200px"/>
-                <field name="current_power" width="120px"/>
+                <field name="current_power" width="120px"
+                       decoration-bf="current_power > 0"/>
                 <field name="daily_energy" width="120px"/>
-                <field name="monthly_energy" width="130px"/>
-                <field name="yearly_energy" width="120px"/>
-                <field name="lifetime_energy" width="130px"/>
+                <field name="monthly_energy" width="130px" optional="hide"/>
+                <field name="yearly_energy" width="120px" optional="hide"/>
+                <field name="lifetime_energy" width="130px" optional="hide"/>
+
+                <!-- Додаємо контрольну суму для перевірки в Odoo 17 -->
+                <field name="id" column_invisible="1"/>
             </tree>
         </field>
     </record>
 
-    <!-- Форма для історичних даних KPI (только для просмотра) -->
+    <!-- Форма для історичних даних KPI з покращеннями для Odoo 17 -->
     <record id="smartlogger_data_view_form" model="ir.ui.view">
         <field name="name">smartlogger.data.form</field>
         <field name="model">smartlogger.data</field>
@@ -29,14 +40,15 @@
                 <sheet>
                     <div class="oe_title">
                         <h1>Дані KPI станції</h1>
+                        <h3><field name="station_id" readonly="1"/></h3>
                     </div>
+
                     <group>
                         <group string="Основна інформація">
-                            <field name="station_id" readonly="1"/>
                             <field name="timestamp" readonly="1"/>
+                            <field name="current_power" readonly="1"/>
                         </group>
                         <group string="Показники енергії">
-                            <field name="current_power" readonly="1"/>
                             <field name="daily_energy" readonly="1"/>
                             <field name="monthly_energy" readonly="1"/>
                             <field name="yearly_energy" readonly="1"/>
@@ -44,16 +56,52 @@
                         </group>
                     </group>
 
+                    <!-- Аналітика для Odoo 17 -->
+                    <group string="Аналітика">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="o_field_widget">
+                                    <span class="o_form_label">Статус генерації</span>
+                                    <div class="o_field_value">
+                                        <span class="badge badge-success" invisible="current_power == 0">
+                                            Генерує енергію
+                                        </span>
+                                        <span class="badge badge-secondary" invisible="current_power != 0">
+                                            Не генерує
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="o_field_widget">
+                                    <span class="o_form_label">Категорія потужності</span>
+                                    <div class="o_field_value">
+                                        <span class="badge badge-success" invisible="current_power &lt;= 50">
+                                            Висока (&gt; 50 кВт)
+                                        </span>
+                                        <span class="badge badge-warning" invisible="current_power == 0 or current_power > 50">
+                                            Помірна (1-50 кВт)
+                                        </span>
+                                        <span class="badge badge-secondary" invisible="current_power != 0">
+                                            Нульова
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </group>
+
                     <div class="alert alert-info mt-3" role="alert">
-                        <p><strong>Примітка:</strong> Ці дані створюються автоматично під час синхронізації з Huawei FusionSolar API.</p>
+                        <p><strong>Примітка (Odoo 17):</strong> Ці дані створюються автоматично під час синхронізації з Huawei FusionSolar API.</p>
                         <p>Для ручного оновлення даних скористайтеся функцією синхронізації в розділі "Операції".</p>
+                        <p><strong>Нові можливості:</strong> Тепер доступний експорт у Excel та покращена аналітика!</p>
                     </div>
                 </sheet>
             </form>
         </field>
     </record>
 
-    <!-- Пошук для історичних даних -->
+    <!-- Покращений пошук для Odoo 17 -->
     <record id="smartlogger_data_view_search" model="ir.ui.view">
         <field name="name">smartlogger.data.search</field>
         <field name="model">smartlogger.data</field>
@@ -61,31 +109,169 @@
             <search string="Пошук даних KPI">
                 <field name="station_id" string="Станція"/>
                 <field name="timestamp" string="Дата/час"/>
+                <field name="current_power" string="Потужність"/>
 
+                <!-- Швидкі фільтри для часу -->
                 <filter name="today" string="Сьогодні"
-                        domain="[('timestamp', '>=', datetime.datetime.combine(context_today(), datetime.time(0,0,0))),
-                                 ('timestamp', '&lt;', datetime.datetime.combine(context_today() + datetime.timedelta(days=1), datetime.time(0,0,0)))]"/>
+                        domain="[('timestamp', '>=', context_today()),
+                                 ('timestamp', '&lt;', (context_today() + datetime.timedelta(days=1)).strftime('%Y-%m-%d'))]"/>
+                <filter name="yesterday" string="Вчора"
+                        domain="[('timestamp', '>=', (context_today() - datetime.timedelta(days=1)).strftime('%Y-%m-%d')),
+                                 ('timestamp', '&lt;', context_today())]"/>
                 <filter name="this_week" string="Цей тиждень"
                         domain="[('timestamp', '>=', (context_today() - datetime.timedelta(days=context_today().weekday())).strftime('%Y-%m-%d')),
                                  ('timestamp', '&lt;', (context_today() + datetime.timedelta(days=7-context_today().weekday())).strftime('%Y-%m-%d'))]"/>
                 <filter name="this_month" string="Цей місяць"
-                        domain="[('timestamp', '>=', datetime.datetime.now().strftime('%Y-%m-01'))]"/>
+                        domain="[('timestamp', '>=', context_today().replace(day=1))]"/>
+                <filter name="last_month" string="Минулий місяць"
+                        domain="[('timestamp', '>=', (context_today().replace(day=1) - datetime.timedelta(days=1)).replace(day=1)),
+                                 ('timestamp', '&lt;', context_today().replace(day=1))]"/>
 
                 <separator/>
+
+                <!-- Фільтри за потужністю -->
                 <filter name="high_power" string="Висока потужність (&gt; 50 кВт)"
                         domain="[('current_power', '>', 50)]"/>
+                <filter name="medium_power" string="Помірна потужність (10-50 кВт)"
+                        domain="[('current_power', '>=', 10), ('current_power', '&lt;=', 50)]"/>
+                <filter name="low_power" string="Низька потужність (1-10 кВт)"
+                        domain="[('current_power', '>=', 1), ('current_power', '&lt;', 10)]"/>
                 <filter name="zero_power" string="Нульова потужність"
                         domain="[('current_power', '=', 0)]"/>
+
+                <separator/>
+
+                <!-- Фільтри за енергією -->
+                <filter name="high_daily_energy" string="Висока добова енергія (&gt; 100 кВт·год)"
+                        domain="[('daily_energy', '>', 100)]"/>
+                <filter name="has_energy" string="Є генерація енергії"
+                        domain="[('daily_energy', '>', 0)]"/>
+
+                <separator/>
+
+                <!-- Фільтри за періодом дня (нова функція Odoo 17) -->
+                <filter name="morning" string="Ранок (6-12)"
+                        domain="[('timestamp', '>=', datetime.datetime.combine(context_today(), datetime.time(6,0,0))),
+                                 ('timestamp', '&lt;', datetime.datetime.combine(context_today(), datetime.time(12,0,0)))]"/>
+                <filter name="afternoon" string="День (12-18)"
+                        domain="[('timestamp', '>=', datetime.datetime.combine(context_today(), datetime.time(12,0,0))),
+                                 ('timestamp', '&lt;', datetime.datetime.combine(context_today(), datetime.time(18,0,0)))]"/>
+                <filter name="evening" string="Вечір (18-22)"
+                        domain="[('timestamp', '>=', datetime.datetime.combine(context_today(), datetime.time(18,0,0))),
+                                 ('timestamp', '&lt;', datetime.datetime.combine(context_today(), datetime.time(22,0,0)))]"/>
 
                 <group expand="0" string="Групувати за">
                     <filter name="group_by_station" string="Станцією"
                             context="{'group_by': 'station_id'}"/>
                     <filter name="group_by_date" string="Датою"
                             context="{'group_by': 'timestamp:day'}"/>
+                    <filter name="group_by_week" string="Тижнем"
+                            context="{'group_by': 'timestamp:week'}"/>
                     <filter name="group_by_month" string="Місяцем"
                             context="{'group_by': 'timestamp:month'}"/>
+                    <filter name="group_by_year" string="Роком"
+                            context="{'group_by': 'timestamp:year'}"/>
                 </group>
             </search>
+        </field>
+    </record>
+
+    <!-- Графічне представлення для Odoo 17 -->
+    <record id="smartlogger_data_view_graph" model="ir.ui.view">
+        <field name="name">smartlogger.data.graph</field>
+        <field name="model">smartlogger.data</field>
+        <field name="arch" type="xml">
+            <graph string="Графік KPI данних" type="line" sample="1">
+                <field name="timestamp" type="row" interval="hour"/>
+                <field name="current_power" type="measure"/>
+                <field name="daily_energy" type="measure"/>
+                <field name="station_id" type="col"/>
+            </graph>
+        </field>
+    </record>
+
+    <!-- Pivot представлення для аналітики в Odoo 17 -->
+    <record id="smartlogger_data_view_pivot" model="ir.ui.view">
+        <field name="name">smartlogger.data.pivot</field>
+        <field name="model">smartlogger.data</field>
+        <field name="arch" type="xml">
+            <pivot string="Аналітика KPI данних" sample="1">
+                <field name="station_id" type="row"/>
+                <field name="timestamp" type="col" interval="day"/>
+                <field name="current_power" type="measure"/>
+                <field name="daily_energy" type="measure"/>
+                <field name="monthly_energy" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <!-- Канбан для відображення станцій з данными (нова фунція Odoo 17) -->
+    <record id="smartlogger_data_view_kanban" model="ir.ui.view">
+        <field name="name">smartlogger.data.kanban</field>
+        <field name="model">smartlogger.data</field>
+        <field name="arch" type="xml">
+            <kanban default_group_by="station_id" quick_create="false">
+                <field name="station_id"/>
+                <field name="timestamp"/>
+                <field name="current_power"/>
+                <field name="daily_energy"/>
+
+                <templates>
+                    <t t-name="kanban-box">
+                        <div class="oe_kanban_card">
+                            <div class="oe_kanban_content">
+                                <div class="row">
+                                    <div class="col-12">
+                                        <strong><t t-esc="record.timestamp.value"/></strong>
+                                    </div>
+                                </div>
+                                <div class="row mt-2">
+                                    <div class="col-6">
+                                        <strong><t t-esc="record.current_power.value"/> кВт</strong><br/>
+                                        <span class="text-muted">Потужність</span>
+                                    </div>
+                                    <div class="col-6">
+                                        <strong><t t-esc="record.daily_energy.value"/> кВт·год</strong><br/>
+                                        <span class="text-muted">Енергія</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- Обновленное действие с новыми представлениями -->
+    <record id="action_smartlogger_data" model="ir.actions.act_window">
+        <field name="name">Історичні дані KPI</field>
+        <field name="res_model">smartlogger.data</field>
+        <field name="view_mode">tree,graph,pivot,kanban,form</field>
+        <field name="context">{'group_by': 'station_id'}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Тут будуть відображатися історичні дані KPI ваших станцій (Odoo 17)
+            </p>
+            <p>
+                Дані автоматично збираються під час синхронізації з Huawei FusionSolar API.<br/>
+                Якщо дані відсутні, перевірте:
+            </p>
+            <ul>
+                <li>Чи налаштовані станції в розділі "Станції"</li>
+                <li>Чи правильно налаштовані параметри API в "Конфігурація > Налаштування API"</li>
+                <li>Чи працює автоматична синхронізація або запустіть її вручну в "Операції > Синхронізувати дані зараз"</li>
+            </ul>
+            <p>
+                <strong>🆕 Нові можливості в Odoo 17:</strong>
+            </p>
+            <ul>
+                <li><strong>Графічний аналіз:</strong> Переглядайте тренды у вкладці "Графік"</li>
+                <li><strong>Зведена таблиця:</strong> Аналізуйте дані у вкладці "Зведена таблиця"</li>
+                <li><strong>Kanban перегляд:</strong> Швидкий огляд останніх записів</li>
+                <li><strong>Експорт в Excel:</strong> Повний експорт даних для зовнішнього аналізу</li>
+                <li><strong>Покращені фільтри:</strong> Більше опцій для пошуку та фільтрації</li>
+            </ul>
         </field>
     </record>
 </odoo>

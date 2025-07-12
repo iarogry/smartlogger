@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- ФАЙЛ: views/smartlogger_config_views.xml -->
-<!-- ЗАМЕНИТЬ ПОЛНОСТЬЮ существующий файл -->
+<!-- ФАЙЛ: views/smartlogger_config_views.xml для Odoo 17 -->
 
 <odoo>
     <!-- Улучшенное представление для настроек SmartLogger -->
@@ -12,7 +11,7 @@
                 <field name="key" readonly="1" string="Параметр"/>
                 <field name="value" string="Значення" placeholder="Введіть значення..."/>
                 <!-- Додаємо поле для групування -->
-                <field name="key" invisible="1"/>
+                <field name="key" column_invisible="1"/>
             </tree>
         </field>
     </record>
@@ -30,7 +29,7 @@
                     </group>
 
                     <!-- Основні налаштування -->
-                    <div class="alert alert-info" role="alert" attrs="{'invisible': [('key', '!=', 'huawei.fusionsolar.base_url')]}">
+                    <div class="alert alert-info" role="alert" invisible="key != 'huawei.fusionsolar.base_url'">
                         <strong>URL сервера Huawei FusionSolar API</strong><br/>
                         За замовчуванням: https://eu5.fusionsolar.huawei.com/thirdData<br/>
                         Для інших регіонів може відрізнятися:
@@ -42,47 +41,47 @@
                         </ul>
                     </div>
 
-                    <div class="alert alert-warning" role="alert" attrs="{'invisible': [('key', '!=', 'huawei.fusionsolar.username')]}">
+                    <div class="alert alert-warning" role="alert" invisible="key != 'huawei.fusionsolar.username'">
                         <strong>Ім'я користувача FusionSolar</strong><br/>
                         Логін від вашого облікового запису Northbound API Huawei FusionSolar.<br/>
                         <em>Примітка: Це має бути окремий Northbound API користувач, не звичайний логін до порталу.</em>
                     </div>
 
-                    <div class="alert alert-warning" role="alert" attrs="{'invisible': [('key', '!=', 'huawei.fusionsolar.password')]}">
+                    <div class="alert alert-warning" role="alert" invisible="key != 'huawei.fusionsolar.password'">
                         <strong>Пароль FusionSolar (System Code)</strong><br/>
                         Пароль від вашого Northbound API користувача.<br/>
                         <em>Примітка: Пароль зберігається в базі даних у відкритому вигляді.</em>
                     </div>
 
                     <!-- Налаштування продуктивності -->
-                    <div class="alert alert-info" role="alert" attrs="{'invisible': [('key', '!=', 'huawei.fusionsolar.batch_size')]}">
+                    <div class="alert alert-info" role="alert" invisible="key != 'huawei.fusionsolar.batch_size'">
                         <strong>Розмір пакету для обробки станцій</strong><br/>
                         Кількість станцій, які обробляються в одному API запиті.<br/>
                         Рекомендовано: 10-20 для великих інсталяцій, 5-10 для маленьких.<br/>
                         Менше значення = більше API викликів, але менше ризику таймауту.
                     </div>
 
-                    <div class="alert alert-info" role="alert" attrs="{'invisible': [('key', '!=', 'huawei.fusionsolar.request_delay')]}">
+                    <div class="alert alert-info" role="alert" invisible="key != 'huawei.fusionsolar.request_delay'">
                         <strong>Затримка між запитами (секунди)</strong><br/>
                         Пауза між API запитами для уникнення перевантаження сервера.<br/>
                         Рекомендовано: 1.0-2.0 секунди.<br/>
                         Huawei має строгі ліміти на кількість запитів.
                     </div>
 
-                    <div class="alert alert-info" role="alert" attrs="{'invisible': [('key', '!=', 'huawei.fusionsolar.max_retries')]}">
+                    <div class="alert alert-info" role="alert" invisible="key != 'huawei.fusionsolar.max_retries'">
                         <strong>Максимальна кількість повторних спроб</strong><br/>
                         Кількість спроб повторити запит при помилці.<br/>
                         Рекомендовано: 2-3 спроби.
                     </div>
 
-                    <div class="alert alert-info" role="alert" attrs="{'invisible': [('key', '!=', 'huawei.fusionsolar.timeout')]}">
+                    <div class="alert alert-info" role="alert" invisible="key != 'huawei.fusionsolar.timeout'">
                         <strong>Таймаут запиту (секунди)</strong><br/>
                         Максимальний час очікування відповіді від API.<br/>
                         Рекомендовано: 30-60 секунд для великих інсталяцій.
                     </div>
 
                     <!-- Налаштування даних -->
-                    <div class="alert alert-info" role="alert" attrs="{'invisible': [('key', '!=', 'huawei.fusionsolar.data_retention_days')]}">
+                    <div class="alert alert-info" role="alert" invisible="key != 'huawei.fusionsolar.data_retention_days'">
                         <strong>Термін зберігання історичних даних (днів)</strong><br/>
                         Кількість днів для зберігання детальних KPI даних.<br/>
                         Старіші дані автоматично видаляються для економії місця.<br/>
@@ -90,21 +89,21 @@
                     </div>
 
                     <!-- Розширені налаштування -->
-                    <div class="alert alert-warning" role="alert" attrs="{'invisible': [('key', '!=', 'huawei.fusionsolar.enable_batch_processing')]}">
+                    <div class="alert alert-warning" role="alert" invisible="key != 'huawei.fusionsolar.enable_batch_processing'">
                         <strong>Увімкнути пакетну обробку</strong><br/>
                         Використовувати пакетні запити для кращої продуктивності.<br/>
                         Значення: true/false<br/>
                         <em>Вимкніть, якщо виникають проблеми з пакетними запитами.</em>
                     </div>
 
-                    <div class="alert alert-warning" role="alert" attrs="{'invisible': [('key', '!=', 'huawei.fusionsolar.use_legacy_api')]}">
+                    <div class="alert alert-warning" role="alert" invisible="key != 'huawei.fusionsolar.use_legacy_api'">
                         <strong>Використовувати застарілий API</strong><br/>
                         Примусово використовувати getStationList замість нового /stations.<br/>
                         Значення: true/false<br/>
                         <em>Увімкніть, якщо новий API не працює у вашому регіоні.</em>
                     </div>
 
-                    <div class="alert alert-info" role="alert" attrs="{'invisible': [('key', '!=', 'huawei.fusionsolar.log_level')]}">
+                    <div class="alert alert-info" role="alert" invisible="key != 'huawei.fusionsolar.log_level'">
                         <strong>Рівень логування</strong><br/>
                         Детальність логів синхронізації.<br/>
                         Значення: DEBUG, INFO, WARNING, ERROR<br/>
@@ -113,13 +112,14 @@
 
                     <!-- Загальна довідка -->
                     <div class="alert alert-success mt-3" role="alert">
-                        <strong>Довідка по налаштуванню:</strong>
+                        <strong>Довідка по налаштуванню (Odoo 17):</strong>
                         <ol>
                             <li>Отримайте Northbound API доступ від Huawei Support</li>
                             <li>Заповніть username, password та перевірте URL для вашого регіону</li>
                             <li>Почніть з базових налаштувань (batch_size=10, request_delay=1.0)</li>
                             <li>При проблемах увімкніть DEBUG логування та перевірте логи</li>
                             <li>Для великої кількості станцій збільште batch_size та timeout</li>
+                            <li>Використовуйте нові можливості Odoo 17 для моніторингу</li>
                         </ol>
                     </div>
 
@@ -133,6 +133,17 @@
                             <li><strong>20404:</strong> API endpoint не знайдено</li>
                             <li><strong>20429:</strong> Перевищено ліміт запитів</li>
                             <li><strong>20500:</strong> Внутрішня помилка сервера Huawei</li>
+                        </ul>
+                    </div>
+
+                    <!-- Нові можливості Odoo 17 -->
+                    <div class="alert alert-success mt-3" role="alert">
+                        <strong>🆕 Нові можливості в Odoo 17:</strong>
+                        <ul>
+                            <li><strong>Покращена продуктивність:</strong> Швидший рендеринг інтерфейсу</li>
+                            <li><strong>Кращі віджети:</strong> Оновлені компоненти форм</li>
+                            <li><strong>Автоматичне збереження:</strong> Менше клацань для збереження даних</li>
+                            <li><strong>Розширені фільтри:</strong> Більше можливостей для пошуку</li>
                         </ul>
                     </div>
                 </sheet>
@@ -152,7 +163,7 @@
         <field name="context">{'create': False, 'delete': False, 'group_by': 'key'}</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">
-                Налаштуйте параметри підключення до Huawei FusionSolar API
+                Налаштуйте параметри підключення до Huawei FusionSolar API (Odoo 17)
             </p>
             <p>
                 <strong>Основні параметри (обов'язкові):</strong><br/>
@@ -173,7 +184,7 @@
                 • <strong>use_legacy_api</strong> - Застарілий API (false)<br/>
             </p>
             <p>
-                Просто натисніть на рядок з параметром та введіть значення у поле "Значення".
+                <strong>🆕 В Odoo 17:</strong> Просто клацніть на рядок з параметром для швидкого редагування!
             </p>
         </field>
     </record>
