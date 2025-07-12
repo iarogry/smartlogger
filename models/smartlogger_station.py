@@ -20,7 +20,7 @@ class SmartLoggerStation(models.Model):
     _rec_name = 'name'
 
     name = fields.Char('Назва станції', required=True, tracking=True)
-    station_code = fields.Char('Код станції', required=True, unique=True, tracking=True,
+    station_code = fields.Char('Код станції', required=True, tracking=True,
                                help="Унікальний код станції з FusionSolar.")
     plant_code = fields.Char('Код електростанції', tracking=True,
                              help="Код електростанції (plantCode) - альтернативний ідентифікатор.")

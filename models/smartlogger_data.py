@@ -7,7 +7,7 @@ class SmartLoggerData(models.Model):
     _order = 'timestamp DESC' # Сортування за часом у спадному порядку
 
     station_id = fields.Many2one('smartlogger.station', string='Станція', required=True, ondelete='cascade')
-    timestamp = fields.Datetime('Час запису', default=fields.Datetime.now(), required=True, index=True)
+    timestamp = fields.Datetime('Час запису', default=fields.Datetime.now, required=True, index=True)
     current_power = fields.Float('Поточна потужність (кВт)')
     daily_energy = fields.Float('Добова енергія (кВт·год)')
     monthly_energy = fields.Float('Місячна енергія (кВт·год)')
