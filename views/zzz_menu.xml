@@ -51,6 +51,31 @@
               action="action_manual_sync_wizard"
               sequence="20"/>
 
+    <!-- Серверні дії як окремі пункти меню -->
+    <menuitem id="smartlogger_quick_sync_all_menu_item"
+              name="⚡ Швидка синхронізація всіх"
+              parent="smartlogger_operations_menu"
+              action="server_action_quick_sync_all"
+              sequence="30"/>
+
+    <!-- 📊 Аналітика та звіти -->
+    <menuitem id="smartlogger_analytics_menu"
+              name="📊 Аналітика"
+              parent="smartlogger_root_menu"
+              sequence="25"/>
+
+    <menuitem id="smartlogger_station_info_menu_item"
+              name="📋 Інформація про всі станції"
+              parent="smartlogger_analytics_menu"
+              action="server_action_show_station_info"
+              sequence="10"/>
+
+    <menuitem id="smartlogger_group_by_region_menu_item"
+              name="🗺️ Групування за регіонами"
+              parent="smartlogger_analytics_menu"
+              action="server_action_group_by_region"
+              sequence="20"/>
+
     <!-- ⚙️ Конфігурація -->
     <menuitem id="smartlogger_config_params_menu_item"
               name="🔑 Налаштування API"
@@ -76,10 +101,33 @@
               parent="smartlogger_root_menu"
               sequence="40"/>
 
+    <menuitem id="smartlogger_cleanup_data_menu_item"
+              name="🗑️ Очистити старі дані"
+              parent="smartlogger_maintenance_menu"
+              action="action_smartlogger_cleanup_data"
+              sequence="10"/>
+
+    <menuitem id="smartlogger_api_status_menu_item"
+              name="🔍 Статус API"
+              parent="smartlogger_maintenance_menu"
+              action="action_check_api_status"
+              sequence="20"/>
+
+    <menuitem id="smartlogger_reset_api_block_menu_item"
+              name="🔓 Скинути блокування API"
+              parent="smartlogger_maintenance_menu"
+              action="action_reset_api_block"
+              sequence="30"/>
+
     <!-- 📚 Довідка -->
     <menuitem id="smartlogger_help_menu"
               name="📚 Довідка"
               parent="smartlogger_root_menu"
               sequence="99"/>
 
+    <menuitem id="smartlogger_api_docs_menu_item"
+              name="📖 Документація API"
+              parent="smartlogger_help_menu"
+              action="action_smartlogger_api_docs"
+              sequence="10"/>
 </odoo>

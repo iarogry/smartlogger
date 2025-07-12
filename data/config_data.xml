@@ -63,5 +63,52 @@
             <field name="value">INFO</field>
         </record>
 
+        <!-- Параметри захисту від блокування API -->
+
+        <record id="config_fusionsolar_api_blocked" model="ir.config_parameter">
+            <field name="key">huawei.fusionsolar.api_blocked</field>
+            <field name="value">false</field>
+        </record>
+
+        <record id="config_fusionsolar_auth_error_count" model="ir.config_parameter">
+            <field name="key">huawei.fusionsolar.auth_error_count</field>
+            <field name="value">0</field>
+        </record>
+
+        <record id="config_fusionsolar_max_auth_errors" model="ir.config_parameter">
+            <field name="key">huawei.fusionsolar.max_auth_errors</field>
+            <field name="value">3</field>
+        </record>
+
+        <record id="config_fusionsolar_last_auth_error" model="ir.config_parameter">
+            <field name="key">huawei.fusionsolar.last_auth_error</field>
+            <field name="value"></field>
+        </record>
+
+        <record id="config_fusionsolar_last_auth_error_time" model="ir.config_parameter">
+            <field name="key">huawei.fusionsolar.last_auth_error_time</field>
+            <field name="value"></field>
+        </record>
+
+        <record id="config_fusionsolar_block_reason" model="ir.config_parameter">
+            <field name="key">huawei.fusionsolar.block_reason</field>
+            <field name="value"></field>
+        </record>
+
+        <record id="config_fusionsolar_block_time" model="ir.config_parameter">
+            <field name="key">huawei.fusionsolar.block_time</field>
+            <field name="value"></field>
+        </record>
+
+        <record id="config_fusionsolar_last_successful_sync" model="ir.config_parameter">
+            <field name="key">huawei.fusionsolar.last_successful_sync</field>
+            <field name="value"></field>
+        </record>
+
+        <record id="config_fusionsolar_reset_time" model="ir.config_parameter">
+            <field name="key">huawei.fusionsolar.reset_time</field>
+            <field name="value"></field>
+        </record>
+
     </data>
 </odoo>

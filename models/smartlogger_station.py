@@ -7,7 +7,7 @@ from odoo.exceptions import UserError
 import requests
 import json
 import logging
-from datetime import timedelta
+from datetime import datetime, timedelta
 import time
 
 _logger = logging.getLogger(__name__)
@@ -85,6 +85,88 @@ class SmartLoggerStation(models.Model):
         return base_url, username, password, batch_size, request_delay
 
     @api.model
+    def _check_api_blocked_status(self):
+        """Перевіряє, чи заблокований API через неправильні облікові дані."""
+        IrConfigParameter = self.env['ir.config_parameter'].sudo()
+
+        # Перевіряємо статус блокировки
+        api_blocked = IrConfigParameter.get_param('huawei.fusionsolar.api_blocked', 'false') == 'true'
+        last_auth_error = IrConfigParameter.get_param('huawei.fusionsolar.last_auth_error')
+        auth_error_count = int(IrConfigParameter.get_param('huawei.fusionsolar.auth_error_count', '0'))
+
+        if api_blocked:
+            block_reason = IrConfigParameter.get_param('huawei.fusionsolar.block_reason', 'Неправильні облікові дані')
+            _logger.warning("FusionSolar API заблокований: %s", block_reason)
+            raise UserError(_(
+                "FusionSolar API тимчасово заблокований через помилки автентифікації.\n\n"
+                "Причина: %s\n"
+                "Кількість помилок: %d\n"
+                "Остання помилка: %s\n\n"
+                "Перевірте облікові дані та натисніть 'Скинути блокування API' для відновлення роботи."
+            ) % (block_reason, auth_error_count, last_auth_error or 'Невідомо'))
+
+        return True
+
+    @api.model
+    def _handle_auth_error(self, error_message):
+        """Обробляє помилки автентифікації та блокує API при необхідності."""
+        IrConfigParameter = self.env['ir.config_parameter'].sudo()
+
+        # Збільшуємо лічильник помилок
+        auth_error_count = int(IrConfigParameter.get_param('huawei.fusionsolar.auth_error_count', '0'))
+        auth_error_count += 1
+
+        # Записуємо дані про помилку
+        IrConfigParameter.set_param('huawei.fusionsolar.auth_error_count', str(auth_error_count))
+        IrConfigParameter.set_param('huawei.fusionsolar.last_auth_error', error_message)
+        IrConfigParameter.set_param('huawei.fusionsolar.last_auth_error_time', fields.Datetime.now())
+
+        _logger.error("FusionSolar API помилка автентифікації #%d: %s", auth_error_count, error_message)
+
+        # Блокуємо API після 3 неуспішних спроб
+        max_auth_errors = int(IrConfigParameter.get_param('huawei.fusionsolar.max_auth_errors', '3'))
+        if auth_error_count >= max_auth_errors:
+            IrConfigParameter.set_param('huawei.fusionsolar.api_blocked', 'true')
+            IrConfigParameter.set_param('huawei.fusionsolar.block_reason',
+                                        'Перевищено максимальну кількість помилок автентифікації (%d)' % max_auth_errors)
+            IrConfigParameter.set_param('huawei.fusionsolar.block_time', fields.Datetime.now())
+
+            _logger.critical("FusionSolar API ЗАБЛОКОВАНИЙ після %d помилок автентифікації", auth_error_count)
+
+            # Вимикаємо автоматичні cron завдання
+            cron_jobs = self.env['ir.cron'].search([('name', 'ilike', 'SmartLogger')])
+            cron_jobs.write({'active': False})
+            _logger.warning("Вимкнено %d автоматичних завдань SmartLogger", len(cron_jobs))
+
+    @api.model
+    def reset_api_block(self):
+        """Скидає блокування API та скидає лічильники помилок."""
+        IrConfigParameter = self.env['ir.config_parameter'].sudo()
+
+        # Скидаємо всі параметри блокировки
+        IrConfigParameter.set_param('huawei.fusionsolar.api_blocked', 'false')
+        IrConfigParameter.set_param('huawei.fusionsolar.auth_error_count', '0')
+        IrConfigParameter.set_param('huawei.fusionsolar.last_auth_error', '')
+        IrConfigParameter.set_param('huawei.fusionsolar.block_reason', '')
+        IrConfigParameter.set_param('huawei.fusionsolar.reset_time', fields.Datetime.now())
+
+        # Включаємо назад автоматичні cron завдання
+        cron_jobs = self.env['ir.cron'].search([('name', 'ilike', 'SmartLogger')])
+        cron_jobs.write({'active': True})
+
+        _logger.info("FusionSolar API блокування скинуто. Увімкнено %d автоматичних завдань", len(cron_jobs))
+
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'type': 'success',
+                'message': _('Блокування API скинуто успішно! Автоматичні завдання відновлено.'),
+                'sticky': False,
+            }
+        }
+
+    @api.model
     def sync_fusionsolar_data(self):
         """
         Синхронізує дані всіх станцій з FusionSolar API з оптимізацією для множественних станцій.
@@ -92,6 +174,9 @@ class SmartLoggerStation(models.Model):
         _logger.info("Початок синхронізації даних FusionSolar.")
 
         try:
+            # Перевіряємо, чи не заблокований API
+            self._check_api_blocked_status()
+
             base_url, username, password, batch_size, request_delay = self._get_fusionsolar_api_credentials()
 
             # Отримуємо або оновлюємо список станцій
@@ -99,6 +184,12 @@ class SmartLoggerStation(models.Model):
 
             # Синхронізуємо дані станцій пакетами
             self._sync_stations_batch(base_url, username, password, batch_size, request_delay)
+
+            # Якщо дійшли до цього місця, значить синхронізація пройшла успішно
+            # Скидаємо лічильник помилок автентифікації
+            IrConfigParameter = self.env['ir.config_parameter'].sudo()
+            IrConfigParameter.set_param('huawei.fusionsolar.auth_error_count', '0')
+            IrConfigParameter.set_param('huawei.fusionsolar.last_successful_sync', fields.Datetime.now())
 
             _logger.info("Синхронізація даних FusionSolar завершена успішно.")
 
@@ -108,8 +199,24 @@ class SmartLoggerStation(models.Model):
                 'stations_processed': len(self.search([]))
             }
 
+        except UserError as ue:
+            # UserError уже содержит сообщение о блокировке API или другие проблемы
+            _logger.error("UserError під час синхронізації: %s", str(ue))
+            raise
         except Exception as e:
-            _logger.error("Помилка під час синхронізації FusionSolar: %s", str(e))
+            error_msg = str(e)
+            _logger.error("Помилка під час синхронізації FusionSolar: %s", error_msg)
+
+            # Перевіряємо, чи це помилка автентифікації за ключовими словами
+            auth_keywords = [
+                '401', 'unauthorized', 'authentication', 'login', 'token', 'credential',
+                'user.login.user_or_value_invalid', 'failCode": 20400', 'failCode: 20400',
+                'неправильні облікові дані', 'доступ заборонено', 'права користувача'
+            ]
+
+            if any(auth_keyword in error_msg.lower() for auth_keyword in auth_keywords):
+                self._handle_auth_error(error_msg)
+
             raise
 
     def _update_station_list(self, base_url, username, password, request_delay):
@@ -181,13 +288,23 @@ class SmartLoggerStation(models.Model):
             }
 
             response = session.post(stations_url, json=payload, headers=headers, timeout=30)
-            response.raise_for_status()
 
-            data = response.json()
+            if response.status_code != 200:
+                _logger.warning("API /stations повернув HTTP %d", response.status_code)
+                return None
+
+            try:
+                data = response.json()
+            except json.JSONDecodeError:
+                _logger.warning("Неправильна JSON відповідь від API /stations")
+                return None
+
             if data.get('success'):
                 return data
             else:
-                _logger.error("Помилка API /stations: %s", data.get('failCode'))
+                fail_code = data.get('failCode')
+                message = data.get('message', '')
+                _logger.error("Помилка API /stations: failCode=%s, message=%s", fail_code, message)
                 return None
 
         except Exception as e:
@@ -201,13 +318,23 @@ class SmartLoggerStation(models.Model):
             headers = {'XSRF-TOKEN': token, 'Content-Type': 'application/json'}
 
             response = session.post(stations_url, headers=headers, timeout=30)
-            response.raise_for_status()
 
-            data = response.json()
+            if response.status_code != 200:
+                _logger.error("API getStationList повернув HTTP %d", response.status_code)
+                return None
+
+            try:
+                data = response.json()
+            except json.JSONDecodeError:
+                _logger.error("Неправильна JSON відповідь від API getStationList")
+                return None
+
             if data.get('success'):
                 return data
             else:
-                _logger.error("Помилка API getStationList: %s", data.get('failCode'))
+                fail_code = data.get('failCode')
+                message = data.get('message', '')
+                _logger.error("Помилка API getStationList: failCode=%s, message=%s", fail_code, message)
                 return None
 
         except Exception as e:
@@ -438,7 +565,7 @@ class SmartLoggerStation(models.Model):
             })
 
     def _authenticate(self, session, base_url, username, password):
-        """Аутентифікація в API."""
+        """Аутентифікація в API з правильною обробкою JSON відповідей."""
         try:
             login_url = f"{base_url}/login"
             login_data = {
@@ -447,18 +574,79 @@ class SmartLoggerStation(models.Model):
             }
 
             response = session.post(login_url, json=login_data, timeout=30)
-            response.raise_for_status()
 
-            token = response.headers.get('xsrf-token')
+            # Перевіряємо HTTP статус
+            if response.status_code != 200:
+                error_msg = _("Помилка HTTP %d при підключенні до API") % response.status_code
+                self._handle_auth_error(error_msg)
+                raise UserError(error_msg)
+
+            # Парсимо JSON відповідь
+            try:
+                response_data = response.json()
+            except json.JSONDecodeError as e:
+                error_msg = _("Неправильна JSON відповідь від API: %s") % str(e)
+                self._handle_auth_error(error_msg)
+                raise UserError(error_msg)
+
+            # Перевіряємо успішність операції в JSON
+            if not response_data.get('success', False):
+                fail_code = response_data.get('failCode')
+                api_message = response_data.get('message', '')
+
+                # Визначаємо тип помилки за кодом
+                if fail_code == 20400:
+                    error_msg = _("Неправильні облікові дані API (логін або пароль). Перевірте username та password.")
+                elif fail_code in [20401, 20403]:
+                    error_msg = _("Доступ заборонено. Перевірте права користувача API або термін дії облікових даних.")
+                elif fail_code == 20404:
+                    error_msg = _("API endpoint не знайдено. Перевірте URL сервера.")
+                elif fail_code == 20429:
+                    error_msg = _("Перевищено ліміт запитів API. Спробуйте пізніше.")
+                elif fail_code == 20500:
+                    error_msg = _("Внутрішня помилка сервера Huawei. Спробуйте пізніше.")
+                else:
+                    error_msg = _("Помилка API: код %s, повідомлення: %s") % (fail_code, api_message)
+
+                # Логуємо детальну інформацію
+                _logger.error(
+                    "FusionSolar API автентифікація відхилена: failCode=%s, message=%s, response=%s",
+                    fail_code, api_message, response_data
+                )
+
+                self._handle_auth_error(error_msg)
+                raise UserError(error_msg)
+
+            # Отримуємо токен з заголовків
+            token = response.headers.get('xsrf-token') or response.headers.get('XSRF-TOKEN')
             if not token:
-                raise UserError(_("Не вдалося отримати токен XSRF після входу."))
+                error_msg = _("Не вдалося отримати токен XSRF з відповіді API. Можливо, проблема з сервером.")
+                self._handle_auth_error(error_msg)
+                raise UserError(error_msg)
 
-            _logger.info("FusionSolar API: Успішна аутентифікація.")
+            _logger.info("FusionSolar API: Успішна аутентифікація. Токен отримано.")
             return token
 
+        except requests.exceptions.Timeout:
+            error_msg = _("Таймаут підключення до API. Перевірте мережеве з'єднання.")
+            _logger.error("Таймаут автентифікації: %s", error_msg)
+            raise UserError(error_msg)
+        except requests.exceptions.ConnectionError:
+            error_msg = _("Помилка з'єднання з API. Перевірте URL сервера та мережеве з'єднання.")
+            _logger.error("Помилка з'єднання автентифікації: %s", error_msg)
+            raise UserError(error_msg)
+        except requests.exceptions.RequestException as e:
+            error_msg = _("Помилка мережі при автентифікації: %s") % str(e)
+            _logger.error("Помилка мережі автентифікації: %s", str(e))
+            raise UserError(error_msg)
+        except UserError:
+            # UserError уже оброблені вище
+            raise
         except Exception as e:
-            _logger.error(f"Помилка аутентифікації: {str(e)}")
-            raise UserError(_("Помилка аутентифікації FusionSolar API: %s") % str(e))
+            error_msg = _("Неочікувана помилка автентифікації: %s") % str(e)
+            _logger.error("Неочікувана помилка автентифікації: %s", str(e), exc_info=True)
+            self._handle_auth_error(error_msg)
+            raise UserError(error_msg)
 
     def action_sync_data(self):
         """Дія для ручної синхронізації даних через інтерфейс."""

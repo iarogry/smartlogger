@@ -6,6 +6,9 @@
         <field name="model">smartlogger.dashboard</field>
         <field name="arch" type="xml">
             <form string="Дашборд SmartLogger" create="false" edit="false" delete="false">
+                <header>
+                    <button name="action_refresh_data" string="Оновити дані" type="object" class="btn-primary"/>
+                </header>
                 <sheet>
                     <div class="oe_title">
                         <h1>Дашборд SmartLogger</h1>

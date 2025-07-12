@@ -79,7 +79,24 @@
 
                     <div class="alert alert-warning mt-3" attrs="{'invisible': [('sync_status', '!=', 'error')]}">
                         <strong>Помилка синхронізації!</strong><br/>
-                        Перевірте налаштування API в розділі "Конфігурація > Налаштування API" та спробуйте знову.
+                        Можливі причини:
+                        <ul>
+                            <li>Неправильні облікові дані API</li>
+                            <li>API тимчасово заблокований</li>
+                            <li>Проблеми з мережею</li>
+                        </ul>
+                        Перевірте статус API та налаштування, потім спробуйте знову.
+                    </div>
+
+                    <div class="alert alert-info mt-3" attrs="{'invisible': [('sync_status', '!=', 'waiting')]}">
+                        <strong>Захист від блокування API:</strong><br/>
+                        Система автоматично блокує API після 3 неуспішних спроб автентифікації,
+                        щоб запобігти блокуванню з боку Huawei. При блокуванні:
+                        <ul>
+                            <li>Автоматичні завдання вимикаються</li>
+                            <li>Ручна синхронізація блокується</li>
+                            <li>Потрібно перевірити облікові дані та скинути блокування</li>
+                        </ul>
                     </div>
 
                     <div class="alert alert-success mt-3" attrs="{'invisible': [('sync_status', '!=', 'success')]}">
@@ -116,6 +133,18 @@
                     <button name="action_cleanup_old_data" string="Очистити старі дані"
                             type="object" class="btn-secondary"
                             attrs="{'invisible': [('sync_status', 'in', ['waiting', 'running'])]}"/>
+
+                    <button name="action_show_system_info" string="Інформація про систему"
+                            type="object" class="btn-info"
+                            attrs="{'invisible': [('sync_status', 'in', ['running'])]}"/>
+
+                    <button name="action_check_api_status" string="Статус API"
+                            type="object" class="btn-info"
+                            attrs="{'invisible': [('sync_status', 'in', ['running'])]}"/>
+
+                    <button name="action_reset_api_block" string="Скинути блокування API"
+                            type="object" class="btn-warning"
+                            attrs="{'invisible': [('sync_status', 'in', ['running'])]}"/>
 
                     <!-- Закрити -->
                     <button string="Закрити" class="btn-secondary" special="cancel"/>

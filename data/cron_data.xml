@@ -1,26 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- ФАЙЛ: data/cron_data.xml -->
-<!-- ЗАМЕНИТЬ ПОЛНОСТЬЮ существующий файл -->
-
 <odoo>
 	<data noupdate="1">
-		<!-- Основне Cron-завдання для синхронізації даних SmartLogger -->
 		<record id="cron_sync_smartlogger_data" model="ir.cron">
 			<field name="name">Синхронізація даних SmartLogger</field>
 			<field name="model_id" ref="model_smartlogger_station"/>
 			<field name="state">code</field>
 			<field name="code">model.sync_fusionsolar_data()</field>
 			<field name="interval_number">15</field>
-			<!-- Інтервал: кожні 15 хвилин -->
 			<field name="interval_type">minutes</field>
 			<field name="numbercall">-1</field>
-			<!-- Виконувати безкінечно -->
 			<field name="doall">False</field>
-			<!-- Не запускати при старті сервера, якщо пропущено -->
 			<field name="active">True</field>
 		</record>
 
-		<!-- Cron-завдання для очищення старих KPI даних -->
 		<record id="cron_cleanup_old_kpi_data" model="ir.cron">
 			<field name="name">Очищення старих KPI даних SmartLogger</field>
 			<field name="model_id" ref="model_smartlogger_station"/>
@@ -35,40 +27,36 @@ deleted_count = model.cleanup_old_kpi_data(retention_days)
 log("Очищено %d старих записів KPI (старіше %d днів)" % (deleted_count, retention_days))
 			</field>
 			<field name="interval_number">1</field>
-			<!-- Інтервал: кожен день о 02:00 -->
 			<field name="interval_type">days</field>
 			<field name="nextcall" eval="(DateTime.now() + timedelta(days=1)).replace(hour=2, minute=0, second=0)"/>
 			<field name="numbercall">-1</field>
-			<!-- Виконувати безкінечно -->
 			<field name="doall">False</field>
 			<field name="active">True</field>
 		</record>
 
-		<!-- Cron-завдання для щоденного оновлення списку станцій -->
 		<record id="cron_update_station_list" model="ir.cron">
 			<field name="name">Оновлення списку станцій SmartLogger</field>
 			<field name="model_id" ref="model_smartlogger_station"/>
 			<field name="state">code</field>
 			<field name="code">
-# Виконуємо синхронізацію тільки списку станцій
+# Перевіряємо статус API перед оновленням списку
 try:
+    model._check_api_blocked_status()
+    # Виконуємо синхронізацію тільки списку станцій
     base_url, username, password, batch_size, request_delay = model._get_fusionsolar_api_credentials()
     model._update_station_list(base_url, username, password, request_delay)
     log("Список станцій оновлено успішно")
 except Exception as e:
-    log("Помилка оновлення списку станцій: %s" % str(e), level='error')
+    log("Оновлення списку станцій пропущено: %s" % str(e), level='warning')
 			</field>
 			<field name="interval_number">1</field>
-			<!-- Інтервал: кожен день о 01:00 -->
 			<field name="interval_type">days</field>
 			<field name="nextcall" eval="(DateTime.now() + timedelta(days=1)).replace(hour=1, minute=0, second=0)"/>
 			<field name="numbercall">-1</field>
-			<!-- Виконувати безкінечно -->
 			<field name="doall">False</field>
 			<field name="active">True</field>
 		</record>
 
-		<!-- Cron-завдання для щотижневої повної синхронізації -->
 		<record id="cron_weekly_full_sync" model="ir.cron">
 			<field name="name">Щотижнева повна синхронізація SmartLogger</field>
 			<field name="model_id" ref="model_smartlogger_station"/>
@@ -85,52 +73,21 @@ except Exception as e:
     log("Помилка щотижневої синхронізації: %s" % str(e), level='error')
 			</field>
 			<field name="interval_number">1</field>
-			<!-- Інтервал: кожну неділю о 00:30 -->
 			<field name="interval_type">weeks</field>
 			<field name="nextcall" eval="(DateTime.now() + timedelta(days=(6-DateTime.now().weekday()))).replace(hour=0, minute=30, second=0)"/>
 			<field name="numbercall">-1</field>
-			<!-- Виконувати безкінечно -->
 			<field name="doall">False</field>
 			<field name="active">False</field>
-			<!-- За замовчуванням вимкнено, можна увімкнути при потребі -->
-		</record>
+			</record>
 
-		<!-- Cron-завдання для моніторингу стану станцій -->
 		<record id="cron_monitor_station_health" model="ir.cron">
 			<field name="name">Моніторинг стану станцій SmartLogger</field>
 			<field name="model_id" ref="model_smartlogger_station"/>
 			<field name="state">code</field>
-			<field name="code">
-# Перевіряємо стан станцій та створюємо попередження
-from datetime import datetime, timedelta
-
-# Знаходимо станції з застарілими даними (більше 2 годин)
-cutoff_time = datetime.now() - timedelta(hours=2)
-stale_stations = model.search([
-    '|',
-    ('last_sync', '&lt;', cutoff_time),
-    ('last_sync', '=', False)
-])
-
-# Знаходимо станції з помилками
-error_stations = model.search([('status', 'in', ['error', 'sync_error'])])
-
-# Логуємо статистику
-total_stations = len(model.search([]))
-active_stations = len(model.search([('status', '=', 'active')]))
-
-log("Моніторинг станцій: Всього: %d, Активних: %d, Застарілих даних: %d, З помилками: %d" %
-    (total_stations, active_stations, len(stale_stations), len(error_stations)))
-
-# Можна додати відправку email-сповіщень при критичних проблемах
-if len(error_stations) > total_stations * 0.2:  # Більше 20% станцій з помилками
-    log("КРИТИЧНО: Більше 20% станцій мають помилки синхронізації", level='error')
-			</field>
+			<field name="code">model._monitor_station_health()</field>
 			<field name="interval_number">1</field>
-			<!-- Інтервал: кожну годину -->
 			<field name="interval_type">hours</field>
 			<field name="numbercall">-1</field>
-			<!-- Виконувати безкінечно -->
 			<field name="doall">False</field>
 			<field name="active">True</field>
 		</record>

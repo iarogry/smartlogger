@@ -152,9 +152,59 @@ class SyncDataWizard(models.TransientModel):
 
         return self._return_updated_form()
 
+    def action_reset_api_block(self):
+        """Скидає блокування API."""
+        try:
+            result = self.env['smartlogger.station'].reset_api_block()
+            self.message = _("Блокування API скинуто успішно! Можете спробувати синхронізацію знову.")
+            self.sync_status = 'success'
+
+        except Exception as e:
+            self.message = _("Помилка скидання блокування API: %s") % str(e)
+            self.sync_status = 'error'
+
+        return self._return_updated_form()
+
+    def action_check_api_status(self):
+        """Перевіряє статус API."""
+        try:
+            IrConfigParameter = self.env['ir.config_parameter'].sudo()
+
+            api_blocked = IrConfigParameter.get_param('huawei.fusionsolar.api_blocked', 'false') == 'true'
+            auth_error_count = int(IrConfigParameter.get_param('huawei.fusionsolar.auth_error_count', '0'))
+            last_auth_error = IrConfigParameter.get_param('huawei.fusionsolar.last_auth_error', '')
+            last_successful_sync = IrConfigParameter.get_param('huawei.fusionsolar.last_successful_sync', '')
+
+            status_info = []
+            if api_blocked:
+                status_info.append("🔴 API ЗАБЛОКОВАНИЙ")
+                status_info.append(f"Помилок автентифікації: {auth_error_count}")
+                if last_auth_error:
+                    status_info.append(f"Остання помилка: {last_auth_error}")
+                status_info.append("Натисніть 'Скинути блокування' для відновлення")
+            else:
+                status_info.append("🟢 API активний")
+                if auth_error_count > 0:
+                    status_info.append(f"Попередніх помилок: {auth_error_count}")
+                if last_successful_sync:
+                    status_info.append(f"Остання успішна синхронізація: {last_successful_sync}")
+
+            self.sync_results = "\n".join(status_info)
+            self.sync_status = 'success' if not api_blocked else 'error'
+            self.message = _("Статус API перевірено")
+
+        except Exception as e:
+            self.message = _("Помилка перевірки статусу: %s") % str(e)
+            self.sync_status = 'error'
+
+        return self._return_updated_form()
+
     def _validate_configuration(self):
         """Перевіряє конфігурацію API."""
         try:
+            # Перевіряємо, чи не заблокований API
+            self.env['smartlogger.station']._check_api_blocked_status()
+
             IrConfigParameter = self.env['ir.config_parameter'].sudo()
             username = IrConfigParameter.get_param('huawei.fusionsolar.username')
             password = IrConfigParameter.get_param('huawei.fusionsolar.password')
@@ -170,6 +220,10 @@ class SyncDataWizard(models.TransientModel):
 
             return True
 
+        except UserError as ue:
+            # API заблокований
+            self.error_details = str(ue)
+            return False
         except Exception as e:
             _logger.error("Помилка валідації конфігурації: %s", e)
             self.error_details = str(e)
@@ -430,6 +484,52 @@ class SyncDataWizard(models.TransientModel):
 
         except Exception as e:
             self.message = _("Помилка очищення даних: %s") % str(e)
+            self.sync_status = 'error'
+
+        return self._return_updated_form()
+
+    def action_show_system_info(self):
+        """Показує інформацію про систему."""
+        try:
+            stations = self.env['smartlogger.station'].search([])
+
+            # Статистика станцій
+            total_stations = len(stations)
+            active_stations = len(stations.filtered(lambda s: s.status == 'active'))
+            error_stations = len(stations.filtered(lambda s: s.status in ['error', 'sync_error']))
+
+            # Статистика KPI даних
+            kpi_records = self.env['smartlogger.data'].search([])
+            total_kpi_records = len(kpi_records)
+
+            # Останні синхронізації
+            recent_syncs = stations.filtered('last_sync').sorted('last_sync', reverse=True)
+            last_sync = recent_syncs[0].last_sync if recent_syncs else False
+
+            # Формуємо звіт
+            info = []
+            info.append(f"📊 Загальна статистика:")
+            info.append(f"   • Всього станцій: {total_stations}")
+            info.append(f"   • Активних: {active_stations}")
+            info.append(f"   • З помилками: {error_stations}")
+            info.append(f"   • Записів KPI: {total_kpi_records}")
+            info.append(f"")
+            info.append(f"🔄 Синхронізація:")
+            if last_sync:
+                info.append(f"   • Остання: {last_sync.strftime('%Y-%m-%d %H:%M:%S')}")
+            else:
+                info.append(f"   • Ніколи не виконувалась")
+            info.append(f"")
+            info.append(f"💾 База даних:")
+            info.append(f"   • Модель станцій: smartlogger.station")
+            info.append(f"   • Модель KPI: smartlogger.data")
+
+            self.sync_results = "\n".join(info)
+            self.sync_status = 'success'
+            self.message = _("Інформація про систему оновлена")
+
+        except Exception as e:
+            self.message = _("Помилка отримання інформації: %s") % str(e)
             self.sync_status = 'error'
 
         return self._return_updated_form()

@@ -17,7 +17,6 @@
         <field name="name">Дашборд SmartLogger</field>
         <field name="res_model">smartlogger.dashboard</field>
         <field name="view_mode">form</field>
-        <field name="res_id">1</field>
         <field name="target">current</field>
         <field name="context">{'dashboard_mode': True}</field>
     </record>
@@ -77,4 +76,6 @@
             </p>
         </field>
     </record>
+
+
 </odoo>

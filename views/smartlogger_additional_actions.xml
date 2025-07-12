@@ -3,17 +3,28 @@
 <!-- СОЗДАТЬ НОВЫЙ ФАЙЛ! (этого файла нет в проекте) -->
 
 <odoo>
-    <!-- Дополнительные действия для расширенного функционала SmartLogger -->
+    <!-- ========================================== -->
+    <!-- ДОПОЛНИТЕЛЬНЫЕ ДЕЙСТВИЯ ДЛЯ SMARTLOGGER   -->
+    <!-- ========================================== -->
+
+    <!-- ==========================================
+         ДЕЙСТВИЯ ДЛЯ ОКОН (ir.actions.act_window)
+         ========================================== -->
 
     <!-- Kanban представление станций -->
     <record id="action_smartlogger_station_kanban" model="ir.actions.act_window">
         <field name="name">Станції SmartLogger (Kanban)</field>
         <field name="res_model">smartlogger.station</field>
         <field name="view_mode">kanban,tree,form</field>
-        <field name="view_id" ref="smartlogger_station_view_kanban"/>
-        <field name="context">{
-            'search_default_group_by_status': 1
-        }</field>
+        <field name="context">{'search_default_group_by_status': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Kanban представление ваших станцій SmartLogger
+            </p>
+            <p>
+                Тут ви побачите всі станції, згруповані за статусами для зручного управління.
+            </p>
+        </field>
     </record>
 
     <!-- Станции с ошибками -->
@@ -22,9 +33,7 @@
         <field name="res_model">smartlogger.station</field>
         <field name="view_mode">tree,form</field>
         <field name="domain">[('status', 'in', ['error', 'sync_error'])]</field>
-        <field name="context">{
-            'search_default_error_stations': 1
-        }</field>
+        <field name="context">{'search_default_error_stations': 1}</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">
                 Станції з помилками відсутні!
@@ -35,7 +44,7 @@
         </field>
     </record>
 
-    <!-- Вибіркова синхронізація -->
+    <!-- Выборочная синхронизация -->
     <record id="action_manual_sync_wizard" model="ir.actions.act_window">
         <field name="name">Вибіркова синхронізація</field>
         <field name="res_model">smartlogger.sync.data.wizard</field>
@@ -44,7 +53,7 @@
         <field name="context">{'default_sync_mode': 'data_only'}</field>
     </record>
 
-    <!-- Cron jobs управление -->
+    <!-- Управление Cron заданиями -->
     <record id="action_smartlogger_cron_jobs" model="ir.actions.act_window">
         <field name="name">Автоматичні завдання SmartLogger</field>
         <field name="res_model">ir.cron</field>
@@ -55,9 +64,7 @@
             <p class="o_view_nocontent_smiling_face">
                 Управління автоматичними завданнями SmartLogger
             </p>
-            <p>
-                Тут ви можете:
-            </p>
+            <p>Тут ви можете:</p>
             <ul>
                 <li>Увімкнути/вимкнути автоматичну синхронізацію</li>
                 <li>Змінити інтервали виконання</li>
@@ -87,96 +94,7 @@
         </field>
     </record>
 
-<?xml version="1.0" encoding="utf-8"?>
-<!-- ФАЙЛ: views/smartlogger_additional_actions.xml -->
-<!-- СОЗДАТЬ НОВЫЙ ФАЙЛ! (этого файла нет в проекте) -->
-
-<odoo>
-    <!-- Дополнительные действия для расширенного функционала SmartLogger -->
-
-    <!-- Kanban представление станций -->
-    <record id="action_smartlogger_station_kanban" model="ir.actions.act_window">
-        <field name="name">Станції SmartLogger (Kanban)</field>
-        <field name="res_model">smartlogger.station</field>
-        <field name="view_mode">kanban,tree,form</field>
-        <field name="view_id" ref="smartlogger_station_view_kanban"/>
-        <field name="context">{
-            'search_default_group_by_status': 1
-        }</field>
-    </record>
-
-    <!-- Станции с ошибками -->
-    <record id="action_smartlogger_error_stations" model="ir.actions.act_window">
-        <field name="name">Станції з помилками</field>
-        <field name="res_model">smartlogger.station</field>
-        <field name="view_mode">tree,form</field>
-        <field name="domain">[('status', 'in', ['error', 'sync_error'])]</field>
-        <field name="context">{
-            'search_default_error_stations': 1
-        }</field>
-        <field name="help" type="html">
-            <p class="o_view_nocontent_smiling_face">
-                Станції з помилками відсутні!
-            </p>
-            <p>
-                Це означає, що всі ваші станції працюють без помилок синхронізації.
-            </p>
-        </field>
-    </record>
-
-    <!-- Вибіркова синхронізація -->
-    <record id="action_manual_sync_wizard" model="ir.actions.act_window">
-        <field name="name">Вибіркова синхронізація</field>
-        <field name="res_model">smartlogger.sync.data.wizard</field>
-        <field name="view_mode">form</field>
-        <field name="target">new</field>
-        <field name="context">{'default_sync_mode': 'data_only'}</field>
-    </record>
-
-    <!-- Cron jobs управление -->
-    <record id="action_smartlogger_cron_jobs" model="ir.actions.act_window">
-        <field name="name">Автоматичні завдання SmartLogger</field>
-        <field name="res_model">ir.cron</field>
-        <field name="view_mode">tree,form</field>
-        <field name="domain">[('name', 'ilike', 'SmartLogger')]</field>
-        <field name="context">{'create': False, 'delete': False}</field>
-        <field name="help" type="html">
-            <p class="o_view_nocontent_smiling_face">
-                Управління автоматичними завданнями SmartLogger
-            </p>
-            <p>
-                Тут ви можете:
-            </p>
-            <ul>
-                <li>Увімкнути/вимкнути автоматичну синхронізацію</li>
-                <li>Змінити інтервали виконання</li>
-                <li>Переглянути статус виконання завдань</li>
-                <li>Налаштувати додаткові завдання обслуговування</li>
-            </ul>
-        </field>
-    </record>
-
-    <!-- Расширенные настройки -->
-    <record id="action_smartlogger_advanced_config" model="ir.actions.act_window">
-        <field name="name">Розширені налаштування</field>
-        <field name="res_model">ir.config_parameter</field>
-        <field name="view_mode">tree,form</field>
-        <field name="domain">[('key', 'ilike', 'huawei.fusionsolar%')]</field>
-        <field name="context">{'create': True, 'delete': True}</field>
-        <field name="help" type="html">
-            <p class="o_view_nocontent_smiling_face">
-                Розширені налаштування SmartLogger
-            </p>
-            <p>
-                <strong>Увага!</strong> Змінюйте ці параметри тільки якщо розумієте їх призначення.
-            </p>
-            <p>
-                Тут можна додати нові параметри конфігурації або змінити існуючі.
-            </p>
-        </field>
-    </record>
-
-    <!-- Действие для очистки старых данных через wizard синхронизации -->
+    <!-- Очистка старых данных -->
     <record id="action_smartlogger_cleanup_data" model="ir.actions.act_window">
         <field name="name">Очищення старих даних</field>
         <field name="res_model">smartlogger.sync.data.wizard</field>
@@ -185,6 +103,77 @@
         <field name="context">{'default_sync_mode': 'data_only', 'cleanup_mode': True}</field>
     </record>
 
+    <!-- Сброс блокировки API -->
+    <record id="action_reset_api_block" model="ir.actions.server">
+        <field name="name">Скинути блокування API</field>
+        <field name="model_id" ref="smartlogger.model_smartlogger_station"/>
+        <field name="state">code</field>
+        <field name="code">
+# Сбрасываем блокировку API
+try:
+    result = env['smartlogger.station'].reset_api_block()
+    if result:
+        raise UserWarning('Блокування API скинуто успішно! Автоматичні завдання відновлено.')
+    else:
+        raise UserWarning('Блокування API скинуто.')
+except Exception as e:
+    raise UserError('Помилка скидання блокування: %s' % str(e))
+        </field>
+    </record>
+
+    <!-- Проверка статуса API -->
+    <record id="action_check_api_status" model="ir.actions.server">
+        <field name="name">Перевірити статус API</field>
+        <field name="model_id" ref="smartlogger.model_smartlogger_station"/>
+        <field name="state">code</field>
+        <field name="code">
+# Проверяем статус API и показываем информацию
+IrConfigParameter = env['ir.config_parameter'].sudo()
+
+api_blocked = IrConfigParameter.get_param('huawei.fusionsolar.api_blocked', 'false') == 'true'
+auth_error_count = int(IrConfigParameter.get_param('huawei.fusionsolar.auth_error_count', '0'))
+last_auth_error = IrConfigParameter.get_param('huawei.fusionsolar.last_auth_error', '')
+last_auth_error_time = IrConfigParameter.get_param('huawei.fusionsolar.last_auth_error_time', '')
+last_successful_sync = IrConfigParameter.get_param('huawei.fusionsolar.last_successful_sync', '')
+block_reason = IrConfigParameter.get_param('huawei.fusionsolar.block_reason', '')
+
+info_lines = []
+info_lines.append('=== СТАТУС FUSIONSOLAR API ===')
+info_lines.append('')
+
+if api_blocked:
+    info_lines.append('🔴 Статус API: ЗАБЛОКОВАНИЙ')
+    info_lines.append('📋 Причина: %s' % (block_reason or 'Невідомо'))
+else:
+    info_lines.append('🟢 Статус API: Активний')
+
+info_lines.append('📊 Кількість помилок автентифікації: %d' % auth_error_count)
+
+if last_auth_error:
+    info_lines.append('❌ Остання помилка: %s' % last_auth_error)
+    if last_auth_error_time:
+        info_lines.append('⏰ Час останньої помилки: %s' % last_auth_error_time)
+
+if last_successful_sync:
+    info_lines.append('✅ Остання успішна синхронізація: %s' % last_successful_sync)
+
+info_lines.append('')
+if api_blocked:
+    info_lines.append('💡 Для відновлення роботи:')
+    info_lines.append('   1. Перевірте облікові дані API')
+    info_lines.append('   2. Натисніть "Скинути блокування API"')
+else:
+    info_lines.append('💡 API працює нормально')
+
+message = '\n'.join(info_lines)
+raise UserWarning(message)
+        </field>
+    </record>
+
+    <!-- ==========================================
+         URL ДЕЙСТВИЯ (ir.actions.act_url)
+         ========================================== -->
+
     <!-- Документация API -->
     <record id="action_smartlogger_api_docs" model="ir.actions.act_url">
         <field name="name">Документація Huawei FusionSolar API</field>
@@ -192,17 +181,19 @@
         <field name="target">new</field>
     </record>
 
-    <!-- Серверные действия для быстрых операций -->
+    <!-- ==========================================
+         СЕРВЕРНЫЕ ДЕЙСТВИЯ (ir.actions.server)
+         ========================================== -->
 
     <!-- Быстрая синхронизация всех станций -->
     <record id="server_action_quick_sync_all" model="ir.actions.server">
         <field name="name">Швидка синхронізація всіх станцій</field>
-        <field name="model_id" ref="model_smartlogger_station"/>
-        <field name="binding_model_id" ref="model_smartlogger_station"/>
+        <field name="model_id" ref="smartlogger.model_smartlogger_station"/>
+        <field name="binding_model_id" ref="smartlogger.model_smartlogger_station"/>
         <field name="binding_view_types">list</field>
         <field name="state">code</field>
         <field name="code">
-# Запуск быстрой синхронизации
+# Запуск быстрой синхронизации для всех станций
 try:
     result = env['smartlogger.station'].sync_fusionsolar_data()
     if result.get('success'):
@@ -217,14 +208,13 @@ except Exception as e:
     <!-- Пометить станции как на обслуживании -->
     <record id="server_action_mark_maintenance" model="ir.actions.server">
         <field name="name">Позначити як "На обслуговуванні"</field>
-        <field name="model_id" ref="model_smartlogger_station"/>
-        <field name="binding_model_id" ref="model_smartlogger_station"/>
+        <field name="model_id" ref="smartlogger.model_smartlogger_station"/>
+        <field name="binding_model_id" ref="smartlogger.model_smartlogger_station"/>
         <field name="binding_view_types">list</field>
         <field name="state">code</field>
         <field name="code">
 # Помечаем выбранные станции как на обслуживании
-for station in records:
-    station.status = 'maintenance'
+records.write({'status': 'maintenance'})
 raise UserWarning('Вибрані станції позначено як "На обслуговуванні"')
         </field>
     </record>
@@ -232,186 +222,123 @@ raise UserWarning('Вибрані станції позначено як "На �
     <!-- Сброс ошибок станций -->
     <record id="server_action_reset_errors" model="ir.actions.server">
         <field name="name">Скинути помилки</field>
-        <field name="model_id" ref="model_smartlogger_station"/>
-        <field name="binding_model_id" ref="model_smartlogger_station"/>
+        <field name="model_id" ref="smartlogger.model_smartlogger_station"/>
+        <field name="binding_model_id" ref="smartlogger.model_smartlogger_station"/>
         <field name="binding_view_types">list</field>
         <field name="state">code</field>
         <field name="code">
-# Сбрасываем ошибки и статус станций
-for station in records:
-    if station.status in ['error', 'sync_error']:
-        station.write({
-            'status': 'active',
-            'last_error': False
-        })
-raise UserWarning('Помилки вибраних станцій скинуто')
+# Сбрасываем ошибки станций с проблемами
+error_stations = records.filtered(lambda r: r.status in ['error', 'sync_error'])
+if error_stations:
+    error_stations.write({
+        'status': 'active',
+        'last_error': False
+    })
+    raise UserWarning('Помилки скинуто для %d станцій' % len(error_stations))
+else:
+    raise UserWarning('Не знайдено станцій з помилками серед вибраних')
         </field>
     </record>
 
-    <!-- Экспорт данных станций в CSV -->
-    <record id="server_action_export_csv" model="ir.actions.server">
-        <field name="name">Експортувати дані в CSV</field>
-        <field name="model_id" ref="model_smartlogger_station"/>
-        <field name="binding_model_id" ref="model_smartlogger_station"/>
+    <!-- Простой экспорт информации о станциях -->
+    <record id="server_action_show_station_info" model="ir.actions.server">
+        <field name="name">Показати інформацію про станції</field>
+        <field name="model_id" ref="smartlogger.model_smartlogger_station"/>
+        <field name="binding_model_id" ref="smartlogger.model_smartlogger_station"/>
         <field name="binding_view_types">list</field>
         <field name="state">code</field>
         <field name="code">
-# Экспорт данных станций
-import base64
-import csv
-import io
-from datetime import datetime
+# Показываем информацию о выбранных станциях
+info_lines = []
+info_lines.append('=== ІНФОРМАЦІЯ ПРО ВИБРАНІ СТАНЦІЇ ===')
+info_lines.append('')
 
-output = io.StringIO()
-writer = csv.writer(output)
-
-# Заголовки
-writer.writerow([
-    'Назва станції', 'Код станції', 'Регіон', 'Статус',
-    'Потужність (кВт)', 'Поточна потужність (кВт)',
-    'Добова енергія (кВт·год)', 'Місячна енергія (кВт·год)',
-    'Річна енергія (кВт·год)', 'Загальна енергія (кВт·год)',
-    'Остання синхронізація'
-])
-
-# Данные
 for station in records:
-    writer.writerow([
-        station.name, station.station_code, station.region or '',
-        station.status, station.capacity, station.current_power,
-        station.daily_energy, station.monthly_energy,
-        station.yearly_energy, station.lifetime_energy,
-        station.last_sync.strftime('%Y-%m-%d %H:%M:%S') if station.last_sync else ''
-    ])
+    info_lines.append('Станція: %s' % station.name)
+    info_lines.append('  Код: %s' % station.station_code)
+    info_lines.append('  Статус: %s' % station.status)
+    info_lines.append('  Потужність: %.2f кВт' % station.current_power)
+    info_lines.append('  Добова енергія: %.2f кВт·год' % station.daily_energy)
+    if station.last_sync:
+        info_lines.append('  Остання синхронізація: %s' % station.last_sync)
+    info_lines.append('')
 
-# Создаем attachment
-csv_data = output.getvalue()
-attachment = env['ir.attachment'].create({
-    'name': f'smartlogger_stations_{datetime.now().strftime("%Y%m%d_%H%M%S")}.csv',
-    'type': 'binary',
-    'datas': base64.b64encode(csv_data.encode()),
-    'res_model': 'smartlogger.station',
-    'mimetype': 'text/csv'
-})
+info_lines.append('Загалом станцій: %d' % len(records))
+total_power = sum(records.mapped('current_power'))
+total_energy = sum(records.mapped('daily_energy'))
+info_lines.append('Загальна потужність: %.2f кВт' % total_power)
+info_lines.append('Загальна добова енергія: %.2f кВт·год' % total_energy)
 
-# Возвращаем ссылку на скачивание
-action = {
-    'type': 'ir.actions.act_url',
-    'url': f'/web/content/{attachment.id}?download=true',
-    'target': 'self',
-}
+# Выводим информацию
+message = '\n'.join(info_lines)
+raise UserWarning(message)
         </field>
     </record>
-</odoo>
 
-    <!-- Серверные действия для быстрых операций -->
-
-    <!-- Быстрая синхронизация всех станций -->
-    <record id="server_action_quick_sync_all" model="ir.actions.server">
-        <field name="name">Швидка синхронізація всіх станцій</field>
-        <field name="model_id" ref="model_smartlogger_station"/>
-        <field name="binding_model_id" ref="model_smartlogger_station"/>
+    <!-- Массовая установка приоритета синхронизации -->
+    <record id="server_action_set_priority" model="ir.actions.server">
+        <field name="name">Встановити високий пріоритет</field>
+        <field name="model_id" ref="smartlogger.model_smartlogger_station"/>
+        <field name="binding_model_id" ref="smartlogger.model_smartlogger_station"/>
         <field name="binding_view_types">list</field>
         <field name="state">code</field>
         <field name="code">
-# Запуск быстрой синхронизации
+# Устанавливаем высокий приоритет синхронизации
+records.write({'sync_priority': 1})
+raise UserWarning('Для %d станцій встановлено високий пріоритет синхронізації' % len(records))
+        </field>
+    </record>
+
+    <!-- Принудительная синхронизация выбранных станций -->
+    <record id="server_action_force_sync" model="ir.actions.server">
+        <field name="name">Примусова синхронізація</field>
+        <field name="model_id" ref="smartlogger.model_smartlogger_station"/>
+        <field name="binding_model_id" ref="smartlogger.model_smartlogger_station"/>
+        <field name="binding_view_types">list</field>
+        <field name="state">code</field>
+        <field name="code">
+# Принудительная синхронизация выбранных станций
 try:
-    result = env['smartlogger.station'].sync_fusionsolar_data()
-    if result.get('success'):
-        raise UserWarning('Синхронізація завершена успішно!')
-    else:
-        raise UserError('Помилка синхронізації: %s' % result.get('message', 'Невідома помилка'))
+    # Обновляем время последней синхронизации и статус
+    records.write({
+        'last_sync': fields.Datetime.now(),
+        'status': 'active'
+    })
+    raise UserWarning('Примусова синхронізація виконана для %d станцій' % len(records))
 except Exception as e:
-    raise UserError('Помилка: %s' % str(e))
+    raise UserError('Помилка примусової синхронізації: %s' % str(e))
         </field>
     </record>
 
-    <!-- Пометить станции как на обслуживании -->
-    <record id="server_action_mark_maintenance" model="ir.actions.server">
-        <field name="name">Позначити як "На обслуговуванні"</field>
-        <field name="model_id" ref="model_smartlogger_station"/>
-        <field name="binding_model_id" ref="model_smartlogger_station"/>
+    <!-- Группировка станций по региону -->
+    <record id="server_action_group_by_region" model="ir.actions.server">
+        <field name="name">Групувати за регіонами</field>
+        <field name="model_id" ref="smartlogger.model_smartlogger_station"/>
+        <field name="binding_model_id" ref="smartlogger.model_smartlogger_station"/>
         <field name="binding_view_types">list</field>
         <field name="state">code</field>
         <field name="code">
-# Помечаем выбранные станции как на обслуживании
+# Группируем станции по регионам
+regions = {}
 for station in records:
-    station.status = 'maintenance'
-raise UserWarning('Вибрані станції позначено як "На обслуговуванні"')
+    region = station.region or 'Без регіону'
+    if region not in regions:
+        regions[region] = []
+    regions[region].append(station.name)
+
+info_lines = []
+info_lines.append('=== ГРУПУВАННЯ ЗА РЕГІОНАМИ ===')
+info_lines.append('')
+
+for region, station_names in regions.items():
+    info_lines.append('%s (%d станцій):' % (region, len(station_names)))
+    for name in station_names:
+        info_lines.append('  • %s' % name)
+    info_lines.append('')
+
+message = '\n'.join(info_lines)
+raise UserWarning(message)
         </field>
     </record>
 
-    <!-- Сброс ошибок станций -->
-    <record id="server_action_reset_errors" model="ir.actions.server">
-        <field name="name">Скинути помилки</field>
-        <field name="model_id" ref="model_smartlogger_station"/>
-        <field name="binding_model_id" ref="model_smartlogger_station"/>
-        <field name="binding_view_types">list</field>
-        <field name="state">code</field>
-        <field name="code">
-# Сбрасываем ошибки и статус станций
-for station in records:
-    if station.status in ['error', 'sync_error']:
-        station.write({
-            'status': 'active',
-            'last_error': False
-        })
-raise UserWarning('Помилки вибраних станцій скинуто')
-        </field>
-    </record>
-
-    <!-- Экспорт данных станций в CSV -->
-    <record id="server_action_export_csv" model="ir.actions.server">
-        <field name="name">Експортувати дані в CSV</field>
-        <field name="model_id" ref="model_smartlogger_station"/>
-        <field name="binding_model_id" ref="model_smartlogger_station"/>
-        <field name="binding_view_types">list</field>
-        <field name="state">code</field>
-        <field name="code">
-# Экспорт данных станций
-import base64
-import csv
-import io
-from datetime import datetime
-
-output = io.StringIO()
-writer = csv.writer(output)
-
-# Заголовки
-writer.writerow([
-    'Назва станції', 'Код станції', 'Регіон', 'Статус',
-    'Потужність (кВт)', 'Поточна потужність (кВт)',
-    'Добова енергія (кВт·год)', 'Місячна енергія (кВт·год)',
-    'Річна енергія (кВт·год)', 'Загальна енергія (кВт·год)',
-    'Остання синхронізація'
-])
-
-# Данные
-for station in records:
-    writer.writerow([
-        station.name, station.station_code, station.region or '',
-        station.status, station.capacity, station.current_power,
-        station.daily_energy, station.monthly_energy,
-        station.yearly_energy, station.lifetime_energy,
-        station.last_sync.strftime('%Y-%m-%d %H:%M:%S') if station.last_sync else ''
-    ])
-
-# Создаем attachment
-csv_data = output.getvalue()
-attachment = env['ir.attachment'].create({
-    'name': f'smartlogger_stations_{datetime.now().strftime("%Y%m%d_%H%M%S")}.csv',
-    'type': 'binary',
-    'datas': base64.b64encode(csv_data.encode()),
-    'res_model': 'smartlogger.station',
-    'mimetype': 'text/csv'
-})
-
-# Возвращаем ссылку на скачивание
-action = {
-    'type': 'ir.actions.act_url',
-    'url': f'/web/content/{attachment.id}?download=true',
-    'target': 'self',
-}
-        </field>
-    </record>
 </odoo>

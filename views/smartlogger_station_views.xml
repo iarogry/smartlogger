@@ -1,9 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!-- ФАЙЛ: views/smartlogger_station_views.xml -->
-<!-- ЗАМЕНИТЬ ПОЛНОСТЬЮ существующий файл -->
-
 <odoo>
-    <!-- Улучшенная форма для станции SmartLogger -->
     <record id="smartlogger_station_view_form" model="ir.ui.view">
         <field name="name">smartlogger.station.form</field>
         <field name="model">smartlogger.station</field>
@@ -72,12 +67,11 @@
                         </group>
                     </group>
 
-                    <!-- Індикатори ефективності -->
                     <group string="Аналітика">
                         <div class="row">
                             <div class="col-md-3">
                                 <div class="o_field_widget">
-                                    <label>Ефективність</label>
+                                    <span class="o_form_label">Ефективність</span>
                                     <div class="o_field_value">
                                         <field name="current_power" invisible="1"/>
                                         <field name="capacity" invisible="1"/>
@@ -92,7 +86,7 @@
                             </div>
                             <div class="col-md-3">
                                 <div class="o_field_widget">
-                                    <label>Статус з'єднання</label>
+                                    <span class="o_form_label">Статус з'єднання</span>
                                     <div class="o_field_value">
                                         <span class="badge badge-success" attrs="{'invisible': ['|', ('last_sync', '=', False), ('last_sync', '&lt;', datetime.datetime.now() - datetime.timedelta(hours=2))]}">
                                             Підключено
@@ -109,7 +103,6 @@
                         </div>
                     </group>
 
-                    <!-- Попередження та поради -->
                     <div class="alert alert-warning" attrs="{'invisible': [('status', '!=', 'error')]}">
                         <strong>Станція має статус помилки!</strong><br/>
                         Перевірте підключення та налаштування API. Деталі помилки див. у полі "Остання помилка".
@@ -126,7 +119,6 @@
                     </div>
                 </sheet>
 
-                <!-- Mail thread для відстеження повідомлень -->
                 <div class="oe_chatter">
                     <field name="message_follower_ids"/>
                     <field name="activity_ids"/>
@@ -136,7 +128,6 @@
         </field>
     </record>
 
-    <!-- Улучшенное дерево для станций SmartLogger -->
     <record id="smartlogger_station_view_tree" model="ir.ui.view">
         <field name="name">smartlogger.station.tree</field>
         <field name="model">smartlogger.station</field>
@@ -170,7 +161,6 @@
         </field>
     </record>
 
-    <!-- Представление поиска для станций -->
     <record id="smartlogger_station_view_search" model="ir.ui.view">
         <field name="name">smartlogger.station.search</field>
         <field name="model">smartlogger.station</field>
@@ -223,7 +213,6 @@
         </field>
     </record>
 
-    <!-- Kanban представление для станций -->
     <record id="smartlogger_station_view_kanban" model="ir.ui.view">
         <field name="name">smartlogger.station.kanban</field>
         <field name="model">smartlogger.station</field>
@@ -308,7 +297,6 @@
         </field>
     </record>
 
-    <!-- Обновленная дія для станций -->
     <record id="action_smartlogger_station" model="ir.actions.act_window">
         <field name="name">Станції SmartLogger</field>
         <field name="res_model">smartlogger.station</field>

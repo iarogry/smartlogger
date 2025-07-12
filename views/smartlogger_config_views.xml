@@ -122,6 +122,19 @@
                             <li>Для великої кількості станцій збільште batch_size та timeout</li>
                         </ol>
                     </div>
+
+                    <!-- Довідка по кодах помилок API -->
+                    <div class="alert alert-info mt-3">
+                        <strong>Коди помилок Huawei FusionSolar API:</strong>
+                        <ul>
+                            <li><strong>20400:</strong> Неправильні облікові дані (логін/пароль)</li>
+                            <li><strong>20401:</strong> Токен автентифікації недійсний</li>
+                            <li><strong>20403:</strong> Доступ заборонено (недостатньо прав)</li>
+                            <li><strong>20404:</strong> API endpoint не знайдено</li>
+                            <li><strong>20429:</strong> Перевищено ліміт запитів</li>
+                            <li><strong>20500:</strong> Внутрішня помилка сервера Huawei</li>
+                        </ul>
+                    </div>
                 </sheet>
             </form>
         </field>

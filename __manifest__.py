@@ -43,40 +43,17 @@
     'depends': ['base', 'mail'],
 
     'data': [
-        # 1. Права доступу (завжди першими)
         'security/ir.model.access.csv',
-
-        # 2. Базова структура меню
         'views/000_menu.xml',
-
-        # 3. Конфігураційні дані (до відображень)
         'data/config_data.xml',
-
-        # 4. Спеціальні відображення конфігурації
         'views/smartlogger_config_views.xml',
-
-        # 5. Основні дії (action)
         'views/smartlogger_action.xml',
-
-        # 6. Додаткові дії (НОВИЙ ФАЙЛ)
         'views/smartlogger_additional_actions.xml',
-
-        # 7. Відображення даних
         'views/smartlogger_data_views.xml',
-
-        # 8. Відображення станцій
         'views/smartlogger_station_views.xml',
-
-        # 9. Відображення дашборду
         'views/smartlogger_dashboard_views.xml',
-
-        # 10. Майстер синхронізації
         'wizards/sync_data_wizard_views.xml',
-
-        # 11. Cron завдання
         'data/cron_data.xml',
-
-        # 12. Фінальне меню (після всіх дій)
         'views/zzz_menu.xml',
     ],
 

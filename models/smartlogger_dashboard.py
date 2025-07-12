@@ -9,12 +9,11 @@ from typing import Dict, Any, Optional
 _logger = logging.getLogger(__name__)
 
 
-class SmartLoggerDashboard(models.Model):
+class SmartLoggerDashboard(models.TransientModel):
     _name = 'smartlogger.dashboard'
     _description = 'Дашборд SmartLogger'
-    _auto = False  # Ця модель не створює таблицю в базі даних
 
-    # Поля для відображення (не зберігаються в БД)
+    # Поля для відображення
     total_stations = fields.Integer(string='Загальна кількість станцій', default=0)
     total_capacity = fields.Float(string='Загальна потужність (кВт)', default=0.0)
     current_total_power = fields.Float(string='Поточна загальна потужність (кВт)', default=0.0)
@@ -42,106 +41,6 @@ class SmartLoggerDashboard(models.Model):
                 'daily_total_energy': 0.0,
             })
         return res
-
-    @api.model
-    def search_read(self, domain=None, fields=None, offset=0, limit=None, order=None):
-        """Переоизначає search_read для віртуальної моделі"""
-        try:
-            dashboard_data = self.get_dashboard_data()
-        except:
-            dashboard_data = {}
-
-        record = {
-            'id': 1,  # Фіктивний ID
-            'total_stations': dashboard_data.get('total_stations', 0),
-            'total_capacity': dashboard_data.get('total_capacity', 0.0),
-            'current_total_power': dashboard_data.get('current_total_power', 0.0),
-            'daily_total_energy': dashboard_data.get('daily_total_energy', 0.0),
-        }
-
-        if fields:
-            record = {key: record[key] for key in fields if key in record}
-
-        return [record]
-
-    def read(self, fields=None, load='_classic_read'):
-        """Переоизначає read для віртуальної моделі"""
-        try:
-            dashboard_data = self.get_dashboard_data()
-        except:
-            dashboard_data = {}
-
-        record = {
-            'id': 1,
-            'total_stations': dashboard_data.get('total_stations', 0),
-            'total_capacity': dashboard_data.get('total_capacity', 0.0),
-            'current_total_power': dashboard_data.get('current_total_power', 0.0),
-            'daily_total_energy': dashboard_data.get('daily_total_energy', 0.0),
-        }
-
-        if fields:
-            record = {key: record[key] for key in fields if key in record}
-
-        return [record]
-
-    @api.model
-    def load(self, fields, data):
-        """Переоизначає load для віртуальної моделі"""
-        return {
-            'ids': [1],
-            'messages': []
-        }
-
-    @api.model
-    def fields_get(self, allfields=None, attributes=None):
-        """Переоизначає fields_get для віртуальної моделі"""
-        res = super().fields_get(allfields, attributes)
-        return res
-
-    @api.model
-    def get_dashboard_data(self, filter_params: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
-        """
-        Отримує агреговані дані для дашборду SmartLogger (базова версія).
-        """
-        try:
-            # Базовий домен для пошуку станцій
-            domain = []
-
-            # Застосування фільтрів
-            if filter_params:
-                if filter_params.get('station_ids'):
-                    domain.append(('id', 'in', filter_params['station_ids']))
-                if filter_params.get('status'):
-                    domain.append(('status', '=', filter_params['status']))
-
-            # Отримуємо модель станцій
-            StationModel = self.env['smartlogger.station']
-            stations = StationModel.search(domain)
-
-            # Базові розрахунки
-            total_capacity = sum(stations.mapped('capacity'))
-            current_total_power = sum(stations.mapped('current_power'))
-            daily_total_energy = sum(stations.mapped('daily_energy'))
-
-            return {
-                'total_stations': len(stations),
-                'total_capacity': total_capacity,
-                'current_total_power': current_total_power,
-                'daily_total_energy': daily_total_energy,
-                'last_update_time': fields.Datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-                'filter_applied': bool(filter_params)
-            }
-
-        except Exception as e:
-            _logger.error("Помилка при отриманні даних дашборду: %s", str(e))
-            return {
-                'total_stations': 0,
-                'total_capacity': 0.0,
-                'current_total_power': 0.0,
-                'daily_total_energy': 0.0,
-                'last_update_time': fields.Datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-                'filter_applied': False
-            }
 
     @api.model
     def get_dashboard_data(self, filter_params=None):
@@ -198,7 +97,16 @@ class SmartLoggerDashboard(models.Model):
 
         except Exception as e:
             _logger.error(f"Помилка при отриманні даних дашборду: {str(e)}")
-            raise UserError(_("Помилка при завантаженні даних дашборду: %s") % str(e))
+            # Возвращаем базовые данные вместо исключения
+            return {
+                'total_stations': 0,
+                'total_capacity': 0.0,
+                'current_total_power': 0.0,
+                'daily_total_energy': 0.0,
+                'last_update_time': fields.Datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+                'filter_applied': False,
+                'error': str(e)
+            }
 
     def _calculate_basic_metrics(self, stations):
         """Обчислює базові метрики дашборду"""
@@ -342,7 +250,7 @@ class SmartLoggerDashboard(models.Model):
                         'message': f'Низька ефективність: {efficiency:.1f}%'
                     })
 
-            # Алерт про статус - ВИПРАВЛЕНО
+            # Алерт про статус
             if hasattr(station, 'status') and station.status in ['error', 'maintenance']:
                 # Отримуємо словник вибору статусів
                 status_field = station._fields.get('status')
@@ -448,3 +356,22 @@ class SmartLoggerDashboard(models.Model):
             pass
 
         return dashboard_data
+
+    def action_refresh_data(self):
+        """Оновлює дані дашборду"""
+        dashboard_data = self.get_dashboard_data()
+        self.write({
+            'total_stations': dashboard_data.get('total_stations', 0),
+            'total_capacity': dashboard_data.get('total_capacity', 0.0),
+            'current_total_power': dashboard_data.get('current_total_power', 0.0),
+            'daily_total_energy': dashboard_data.get('daily_total_energy', 0.0),
+        })
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'type': 'success',
+                'message': _('Дані дашборду оновлено!'),
+                'sticky': False,
+            }
+        }
