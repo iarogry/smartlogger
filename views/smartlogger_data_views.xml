@@ -44,7 +44,7 @@
                         </group>
                     </group>
 
-                    <div class="alert alert-info mt-3">
+                    <div class="alert alert-info mt-3" role="alert">
                         <p><strong>Примітка:</strong> Ці дані створюються автоматично під час синхронізації з Huawei FusionSolar API.</p>
                         <p>Для ручного оновлення даних скористайтеся функцією синхронізації в розділі "Операції".</p>
                     </div>

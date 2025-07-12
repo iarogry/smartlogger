@@ -103,17 +103,17 @@
                         </div>
                     </group>
 
-                    <div class="alert alert-warning" attrs="{'invisible': [('status', '!=', 'error')]}">
+                    <div class="alert alert-warning" role="alert" attrs="{'invisible': [('status', '!=', 'error')]}">
                         <strong>Станція має статус помилки!</strong><br/>
                         Перевірте підключення та налаштування API. Деталі помилки див. у полі "Остання помилка".
                     </div>
 
-                    <div class="alert alert-info" attrs="{'invisible': [('last_sync', '!=', False)]}">
+                    <div class="alert alert-info" role="alert" attrs="{'invisible': [('last_sync', '!=', False)]}">
                         <strong>Станція ще не синхронізувалась</strong><br/>
                         Запустіть синхронізацію для отримання актуальних даних з Huawei FusionSolar.
                     </div>
 
-                    <div class="alert alert-warning" attrs="{'invisible': ['|', ('last_sync', '=', False), ('last_sync', '&gt;=', datetime.datetime.now() - datetime.timedelta(hours=2))]}">
+                    <div class="alert alert-warning" role="alert" attrs="{'invisible': ['|', ('last_sync', '=', False), ('last_sync', '&gt;=', datetime.datetime.now() - datetime.timedelta(hours=2))]}">
                         <strong>Дані застарілі</strong><br/>
                         Остання синхронізація була більше 2 годин тому. Рекомендується перевірити роботу автоматичної синхронізації.
                     </div>

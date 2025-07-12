@@ -685,3 +685,86 @@ class SmartLoggerStation(models.Model):
         _logger.info(f"Видалено {count} старих записів KPI (старіше {days_to_keep} днів)")
 
         return count
+
+    @api.model
+    def cleanup_old_kpi_data(self, days_to_keep=90):
+        """Очищення старих KPI даних для економії місця."""
+        cutoff_date = fields.Datetime.now() - timedelta(days=days_to_keep)
+        old_records = self.env['smartlogger.data'].search([
+            ('timestamp', '<', cutoff_date)
+        ])
+
+        count = len(old_records)
+        old_records.unlink()
+        _logger.info(f"Видалено {count} старих записів KPI (старіше {days_to_keep} днів)")
+
+        return count
+
+    @api.model
+    def _monitor_station_health(self):
+        """Моніторинг стану станцій та логування статистики."""
+        try:
+            stations = self.search([])
+            current_time = datetime.now()
+
+            # Статистика по статусах
+            status_stats = {}
+            sync_stats = {
+                'never_synced': 0,
+                'outdated': 0,
+                'recent': 0,
+                'errors': 0
+            }
+
+            for station in stations:
+                # Статистика статусів
+                status = station.status
+                if status not in status_stats:
+                    status_stats[status] = 0
+                status_stats[status] += 1
+
+                # Статистика синхронізації
+                if not station.last_sync:
+                    sync_stats['never_synced'] += 1
+                else:
+                    time_diff = current_time - station.last_sync
+                    if time_diff.total_seconds() > 7200:  # 2 години
+                        sync_stats['outdated'] += 1
+                    else:
+                        sync_stats['recent'] += 1
+
+                # Статистика помилок
+                if station.status in ['error', 'sync_error']:
+                    sync_stats['errors'] += 1
+
+            # Логування статистики
+            _logger.info(
+                "Моніторинг стану станцій: Всього=%d, Активних=%d, Помилок=%d, Не синхронізованих=%d, Застарілих=%d",
+                len(stations),
+                status_stats.get('active', 0),
+                sync_stats['errors'],
+                sync_stats['never_synced'],
+                sync_stats['outdated']
+            )
+
+            # Перевіряємо критичні проблеми
+            if sync_stats['errors'] > len(stations) * 0.1:  # Більше 10% станцій з помилками
+                _logger.warning("Критично: Більше 10%% станцій (%d з %d) мають помилки синхронізації",
+                                sync_stats['errors'], len(stations))
+
+            if sync_stats['never_synced'] > 0:
+                _logger.warning("Увага: %d станцій ніколи не синхронізувались", sync_stats['never_synced'])
+
+            return {
+                'success': True,
+                'total_stations': len(stations),
+                'status_stats': status_stats,
+                'sync_stats': sync_stats
+            }
+
+        except Exception as e:
+            _logger.error("Помилка моніторингу станцій: %s", str(e))
+            return {
+                'success': False,
+                'error': str(e)
+            }

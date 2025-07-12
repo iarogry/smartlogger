@@ -67,7 +67,7 @@
                     </notebook>
 
                     <!-- Попередження та поради -->
-                    <div class="alert alert-info mt-3" attrs="{'invisible': [('sync_status', '!=', 'waiting')]}">
+                    <div class="alert alert-info mt-3" role="alert" attrs="{'invisible': [('sync_status', '!=', 'waiting')]}">
                         <strong>Режими синхронізації:</strong>
                         <ul>
                             <li><strong>Повна синхронізація:</strong> Оновлює список станцій та всі KPI дані</li>
@@ -77,7 +77,7 @@
                         </ul>
                     </div>
 
-                    <div class="alert alert-warning mt-3" attrs="{'invisible': [('sync_status', '!=', 'error')]}">
+                    <div class="alert alert-warning mt-3" role="alert" attrs="{'invisible': [('sync_status', '!=', 'error')]}">
                         <strong>Помилка синхронізації!</strong><br/>
                         Можливі причини:
                         <ul>
@@ -88,7 +88,7 @@
                         Перевірте статус API та налаштування, потім спробуйте знову.
                     </div>
 
-                    <div class="alert alert-info mt-3" attrs="{'invisible': [('sync_status', '!=', 'waiting')]}">
+                    <div class="alert alert-info mt-3" role="alert" attrs="{'invisible': [('sync_status', '!=', 'waiting')]}">
                         <strong>Захист від блокування API:</strong><br/>
                         Система автоматично блокує API після 3 неуспішних спроб автентифікації,
                         щоб запобігти блокуванню з боку Huawei. При блокуванні:
@@ -99,12 +99,12 @@
                         </ul>
                     </div>
 
-                    <div class="alert alert-success mt-3" attrs="{'invisible': [('sync_status', '!=', 'success')]}">
+                    <div class="alert alert-success mt-3" role="alert" attrs="{'invisible': [('sync_status', '!=', 'success')]}">
                         <strong>Синхронізація завершена успішно!</strong><br/>
                         Переглянути результати можна в розділах "Станції" та "Історичні дані KPI".
                     </div>
 
-                    <div class="alert alert-warning mt-3" attrs="{'invisible': [('sync_status', '!=', 'partial_success')]}">
+                    <div class="alert alert-warning mt-3" role="alert" attrs="{'invisible': [('sync_status', '!=', 'partial_success')]}">
                         <strong>Синхронізація завершена з деякими помилками.</strong><br/>
                         Перевірте деталі помилок на відповідній вкладці та спробуйте повторити для проблемних станцій.
                     </div>

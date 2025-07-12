@@ -37,7 +37,7 @@
                                 class="btn-secondary"/>
                     </div>
 
-                    <div class="alert alert-info mt-3">
+                    <div class="alert alert-info mt-3" role="alert">
                         <p><strong>Примітка:</strong> Цей дашборд відображає агреговані дані всіх станцій SmartLogger.</p>
                         <p>Для детального аналізу скористайтеся окремими розділами станцій та історичних даних.</p>
                     </div>

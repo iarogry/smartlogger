@@ -30,7 +30,7 @@
                     </group>
 
                     <!-- Основні налаштування -->
-                    <div class="alert alert-info" attrs="{'invisible': [('key', '!=', 'huawei.fusionsolar.base_url')]}">
+                    <div class="alert alert-info" role="alert" attrs="{'invisible': [('key', '!=', 'huawei.fusionsolar.base_url')]}">
                         <strong>URL сервера Huawei FusionSolar API</strong><br/>
                         За замовчуванням: https://eu5.fusionsolar.huawei.com/thirdData<br/>
                         Для інших регіонів може відрізнятися:
@@ -42,47 +42,47 @@
                         </ul>
                     </div>
 
-                    <div class="alert alert-warning" attrs="{'invisible': [('key', '!=', 'huawei.fusionsolar.username')]}">
+                    <div class="alert alert-warning" role="alert" attrs="{'invisible': [('key', '!=', 'huawei.fusionsolar.username')]}">
                         <strong>Ім'я користувача FusionSolar</strong><br/>
                         Логін від вашого облікового запису Northbound API Huawei FusionSolar.<br/>
                         <em>Примітка: Це має бути окремий Northbound API користувач, не звичайний логін до порталу.</em>
                     </div>
 
-                    <div class="alert alert-warning" attrs="{'invisible': [('key', '!=', 'huawei.fusionsolar.password')]}">
+                    <div class="alert alert-warning" role="alert" attrs="{'invisible': [('key', '!=', 'huawei.fusionsolar.password')]}">
                         <strong>Пароль FusionSolar (System Code)</strong><br/>
                         Пароль від вашого Northbound API користувача.<br/>
                         <em>Примітка: Пароль зберігається в базі даних у відкритому вигляді.</em>
                     </div>
 
                     <!-- Налаштування продуктивності -->
-                    <div class="alert alert-info" attrs="{'invisible': [('key', '!=', 'huawei.fusionsolar.batch_size')]}">
+                    <div class="alert alert-info" role="alert" attrs="{'invisible': [('key', '!=', 'huawei.fusionsolar.batch_size')]}">
                         <strong>Розмір пакету для обробки станцій</strong><br/>
                         Кількість станцій, які обробляються в одному API запиті.<br/>
                         Рекомендовано: 10-20 для великих інсталяцій, 5-10 для маленьких.<br/>
                         Менше значення = більше API викликів, але менше ризику таймауту.
                     </div>
 
-                    <div class="alert alert-info" attrs="{'invisible': [('key', '!=', 'huawei.fusionsolar.request_delay')]}">
+                    <div class="alert alert-info" role="alert" attrs="{'invisible': [('key', '!=', 'huawei.fusionsolar.request_delay')]}">
                         <strong>Затримка між запитами (секунди)</strong><br/>
                         Пауза між API запитами для уникнення перевантаження сервера.<br/>
                         Рекомендовано: 1.0-2.0 секунди.<br/>
                         Huawei має строгі ліміти на кількість запитів.
                     </div>
 
-                    <div class="alert alert-info" attrs="{'invisible': [('key', '!=', 'huawei.fusionsolar.max_retries')]}">
+                    <div class="alert alert-info" role="alert" attrs="{'invisible': [('key', '!=', 'huawei.fusionsolar.max_retries')]}">
                         <strong>Максимальна кількість повторних спроб</strong><br/>
                         Кількість спроб повторити запит при помилці.<br/>
                         Рекомендовано: 2-3 спроби.
                     </div>
 
-                    <div class="alert alert-info" attrs="{'invisible': [('key', '!=', 'huawei.fusionsolar.timeout')]}">
+                    <div class="alert alert-info" role="alert" attrs="{'invisible': [('key', '!=', 'huawei.fusionsolar.timeout')]}">
                         <strong>Таймаут запиту (секунди)</strong><br/>
                         Максимальний час очікування відповіді від API.<br/>
                         Рекомендовано: 30-60 секунд для великих інсталяцій.
                     </div>
 
                     <!-- Налаштування даних -->
-                    <div class="alert alert-info" attrs="{'invisible': [('key', '!=', 'huawei.fusionsolar.data_retention_days')]}">
+                    <div class="alert alert-info" role="alert" attrs="{'invisible': [('key', '!=', 'huawei.fusionsolar.data_retention_days')]}">
                         <strong>Термін зберігання історичних даних (днів)</strong><br/>
                         Кількість днів для зберігання детальних KPI даних.<br/>
                         Старіші дані автоматично видаляються для економії місця.<br/>
@@ -90,21 +90,21 @@
                     </div>
 
                     <!-- Розширені налаштування -->
-                    <div class="alert alert-warning" attrs="{'invisible': [('key', '!=', 'huawei.fusionsolar.enable_batch_processing')]}">
+                    <div class="alert alert-warning" role="alert" attrs="{'invisible': [('key', '!=', 'huawei.fusionsolar.enable_batch_processing')]}">
                         <strong>Увімкнути пакетну обробку</strong><br/>
                         Використовувати пакетні запити для кращої продуктивності.<br/>
                         Значення: true/false<br/>
                         <em>Вимкніть, якщо виникають проблеми з пакетними запитами.</em>
                     </div>
 
-                    <div class="alert alert-warning" attrs="{'invisible': [('key', '!=', 'huawei.fusionsolar.use_legacy_api')]}">
+                    <div class="alert alert-warning" role="alert" attrs="{'invisible': [('key', '!=', 'huawei.fusionsolar.use_legacy_api')]}">
                         <strong>Використовувати застарілий API</strong><br/>
                         Примусово використовувати getStationList замість нового /stations.<br/>
                         Значення: true/false<br/>
                         <em>Увімкніть, якщо новий API не працює у вашому регіоні.</em>
                     </div>
 
-                    <div class="alert alert-info" attrs="{'invisible': [('key', '!=', 'huawei.fusionsolar.log_level')]}">
+                    <div class="alert alert-info" role="alert" attrs="{'invisible': [('key', '!=', 'huawei.fusionsolar.log_level')]}">
                         <strong>Рівень логування</strong><br/>
                         Детальність логів синхронізації.<br/>
                         Значення: DEBUG, INFO, WARNING, ERROR<br/>
@@ -112,7 +112,7 @@
                     </div>
 
                     <!-- Загальна довідка -->
-                    <div class="alert alert-success mt-3">
+                    <div class="alert alert-success mt-3" role="alert">
                         <strong>Довідка по налаштуванню:</strong>
                         <ol>
                             <li>Отримайте Northbound API доступ від Huawei Support</li>
@@ -124,7 +124,7 @@
                     </div>
 
                     <!-- Довідка по кодах помилок API -->
-                    <div class="alert alert-info mt-3">
+                    <div class="alert alert-info mt-3" role="alert">
                         <strong>Коди помилок Huawei FusionSolar API:</strong>
                         <ul>
                             <li><strong>20400:</strong> Неправильні облікові дані (логін/пароль)</li>
