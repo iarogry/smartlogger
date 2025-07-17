@@ -66,6 +66,34 @@ class SmartLoggerStation(models.Model):
         ('station_code_unique', 'unique(station_code)', 'Код станції повинен бути унікальним!'),
     ]
 
+    efficiency = fields.Float('Ефективність (%)', compute='_compute_efficiency', store=False)
+    connection_status = fields.Selection([
+        ('connected', 'Підключено'),
+        ('outdated', 'Застарілі дані'),
+        ('never_synced', 'Ніколи не синхронізувалось')
+    ], string='Статус з\'єднання', compute='_compute_connection_status', store=False)
+
+    @api.depends('current_power', 'capacity')
+    def _compute_efficiency(self):
+        for record in self:
+            if record.capacity > 0:
+                record.efficiency = (record.current_power / record.capacity) * 100
+            else:
+                record.efficiency = 0.0
+
+    @api.depends('last_sync')
+    def _compute_connection_status(self):
+        from datetime import datetime, timedelta
+        current_time = datetime.now()
+
+        for record in self:
+            if not record.last_sync:
+                record.connection_status = 'never_synced'
+            elif (current_time - record.last_sync).total_seconds() > 7200:  # 2 часа
+                record.connection_status = 'outdated'
+            else:
+                record.connection_status = 'connected'
+
     @api.model
     def _get_fusionsolar_api_credentials(self):
         """Отримує облікові дані FusionSolar API з системних параметрів."""
@@ -220,7 +248,7 @@ class SmartLoggerStation(models.Model):
             raise
 
     def _update_station_list(self, base_url, username, password, request_delay):
-        """Оновлює список станцій з API з підтримкою пагинації."""
+        """Оновлює список станцій з API з підтримкою пагінації."""
         session = requests.Session()
         token = None
 
@@ -228,7 +256,7 @@ class SmartLoggerStation(models.Model):
             # Аутентифікація
             token = self._authenticate(session, base_url, username, password)
 
-            # Отримання списку станцій з пагинацією
+            # Отримання списку станцій з пагінації
             all_stations = []
             page_no = 1
             page_size = 100  # Максимальний розмір сторінки
@@ -241,16 +269,22 @@ class SmartLoggerStation(models.Model):
                     session, base_url, token, page_no, page_size
                 )
 
-                if not stations_data or not stations_data.get('data'):
+                if not stations_data:
                     # Якщо новий метод не працює, спробуємо старий getStationList
                     _logger.warning("Метод /stations не працює, спробуємо getStationList...")
                     stations_data = self._fetch_stations_legacy(session, base_url, token)
 
-                    if stations_data and stations_data.get('data'):
-                        all_stations.extend(stations_data['data'])
-                    break
+                    if stations_data:
+                        # Извлекаем список станций из ответа legacy API
+                        stations_list = self._extract_stations_from_response(stations_data)
+                        if stations_list:
+                            all_stations.extend(stations_list)
+                        break
+                    else:
+                        break
 
-                stations_page = stations_data.get('data', [])
+                # Извлекаем список станций из ответа нового API
+                stations_page = self._extract_stations_from_response(stations_data)
                 if not stations_page:
                     break
 
@@ -267,8 +301,18 @@ class SmartLoggerStation(models.Model):
             _logger.info(f"Знайдено {len(all_stations)} станцій у API")
 
             # Створюємо або оновлюємо записи станцій
-            for station_data in all_stations:
-                self._create_or_update_station(station_data)
+            for i, station_data in enumerate(all_stations):
+                try:
+                    # ПРОВЕРКА ТИПА КАЖДОГО ЭЛЕМЕНТА
+                    if not isinstance(station_data, dict):
+                        _logger.error("Елемент %d не є словником: тип=%s, значення=%s",
+                                      i, type(station_data), str(station_data))
+                        continue
+
+                    self._create_or_update_station(station_data)
+                except Exception as e:
+                    _logger.error("Помилка обробки станції %d: %s", i, str(e))
+                    continue
 
         except Exception as e:
             _logger.error("Помилка при оновленні списку станцій: %s", str(e))
@@ -295,8 +339,11 @@ class SmartLoggerStation(models.Model):
 
             try:
                 data = response.json()
+                # БЕЗОПАСНОЕ ЛОГИРОВАНИЕ ОТВЕТА
+                _logger.info("API /stations відповідь (перші 500 символів): %s", str(data)[:500])
             except json.JSONDecodeError:
                 _logger.warning("Неправильна JSON відповідь від API /stations")
+                _logger.warning("Відповідь (перші 500 символів): %s", response.text[:500])
                 return None
 
             if data.get('success'):
@@ -325,8 +372,11 @@ class SmartLoggerStation(models.Model):
 
             try:
                 data = response.json()
+                # БЕЗОПАСНОЕ ЛОГИРОВАНИЕ ОТВЕТА
+                _logger.info("API getStationList відповідь (перші 500 символів): %s", str(data)[:500])
             except json.JSONDecodeError:
                 _logger.error("Неправильна JSON відповідь від API getStationList")
+                _logger.warning("Відповідь (перші 500 символів): %s", response.text[:500])
                 return None
 
             if data.get('success'):
@@ -343,20 +393,89 @@ class SmartLoggerStation(models.Model):
 
     def _create_or_update_station(self, station_data):
         """Створює або оновлює запис станції."""
-        station_code = station_data.get('stationCode') or station_data.get('plantCode')
-        plant_code = station_data.get('plantCode') or station_data.get('stationCode')
+        # ДОПОЛНИТЕЛЬНАЯ ПРОВЕРКА ТИПА
+        if not isinstance(station_data, dict):
+            _logger.error("station_data не є словником: тип=%s, значення=%s",
+                          type(station_data), str(station_data))
+            raise ValueError(f"station_data має бути словником, отримано {type(station_data)}")
+
+        # ЛОГИРОВАНИЕ СОДЕРЖИМОГО (только ключи для краткости)
+        _logger.info("Обробка станції з ключами: %s", list(station_data.keys()))
+
+        # Ищем код станции - из ваших данных видно, что используется plantCode
+        station_code = None
+        plant_code = None
+
+        # Список возможных ключей для кода станции (приоритет plantCode)
+        station_code_keys = ['plantCode', 'stationCode', 'station_code', 'stationDn', 'code', 'id']
+        plant_code_keys = ['plantCode', 'plant_code', 'plantDn', 'stationCode']
+
+        for key in station_code_keys:
+            if key in station_data and station_data[key]:
+                station_code = str(station_data[key])  # Приводим к строке
+                break
+
+        for key in plant_code_keys:
+            if key in station_data and station_data[key]:
+                plant_code = str(station_data[key])  # Приводим к строке
+                break
+
+        # Если не нашли stationCode, используем plantCode
+        if not station_code:
+            station_code = plant_code
 
         if not station_code:
-            _logger.warning("Пропущено станцію без коду: %s", station_data)
+            _logger.warning("Пропущено станцію без коду: доступні ключі=%s", list(station_data.keys()))
             return
 
+        # Поиск существующей станции
         station = self.search([('station_code', '=', station_code)], limit=1)
 
+        # Ищем имя станции - из ваших данных видно, что используется plantName
+        name_keys = ['plantName', 'stationName', 'station_name', 'plant_name', 'name']
+        station_name = None
+
+        for key in name_keys:
+            if key in station_data and station_data[key]:
+                station_name = str(station_data[key])
+                break
+
+        if not station_name:
+            station_name = _("Невідома станція")
+
+        # Список возможных ключей для мощности
+        capacity_keys = ['capacity', 'installedCapacity', 'installed_capacity', 'nominalPower']
+        capacity_value = 0.0
+
+        for key in capacity_keys:
+            if key in station_data and station_data[key]:
+                try:
+                    capacity_value = float(station_data[key])
+                    break
+                except (ValueError, TypeError):
+                    continue
+
+        # Извлекаем дополнительную информацию из ответа
+        region = station_data.get('plantAddress', '')
+
+        # Извлекаем регион из адреса (например, "Ukraine" из полного адреса)
+        if region and 'Ukraine' in region:
+            # Пытаемся извлечь область/регион
+            parts = region.split(',')
+            for part in parts:
+                part = part.strip()
+                if 'oblast' in part.lower() or 'region' in part.lower():
+                    region = part
+                    break
+            else:
+                region = 'Ukraine'
+
         values = {
-            'name': station_data.get('stationName') or station_data.get('plantName', _("Невідома станція")),
+            'name': station_name,
             'station_code': station_code,
-            'plant_code': plant_code,
-            'capacity': station_data.get('capacity', 0.0),
+            'plant_code': plant_code or station_code,
+            'capacity': capacity_value,
+            'region': region,
             'status': 'active'
         }
 
@@ -368,6 +487,8 @@ class SmartLoggerStation(models.Model):
             # Оновлюємо тільки основні поля, не торкаючись статистики
             update_values = {k: v for k, v in values.items() if k not in ['status']}
             station.write(update_values)
+
+        return station
 
     def _sync_stations_batch(self, base_url, username, password, batch_size, request_delay):
         """Синхронізує дані станцій пакетами для оптимізації API запитів."""
@@ -768,3 +889,56 @@ class SmartLoggerStation(models.Model):
                 'success': False,
                 'error': str(e)
             }
+
+    def _extract_stations_from_response(self, response_data):
+        """Извлекает список станций из ответа API, поддерживая разные форматы."""
+        if not response_data or not isinstance(response_data, dict):
+            return []
+
+        # Логирование структуры ответа
+        _logger.info("Структура відповіді API: %s", {k: type(v).__name__ for k, v in response_data.items()})
+
+        data_section = response_data.get('data')
+        if not data_section:
+            _logger.warning("Відсутня секція 'data' у відповіді")
+            return []
+
+        stations_list = []
+
+        # Вариант 1: data содержит список напрямую
+        if isinstance(data_section, list):
+            _logger.info("Формат даних: data = [список станцій]")
+            stations_list = data_section
+
+        # Вариант 2: data содержит объект с полем 'list'
+        elif isinstance(data_section, dict):
+            if 'list' in data_section:
+                _logger.info("Формат даних: data = {list: [список станцій]}")
+                stations_list = data_section['list']
+            # Вариант 3: data содержит объект с полем 'stations'
+            elif 'stations' in data_section:
+                _logger.info("Формат даних: data = {stations: [список станцій]}")
+                stations_list = data_section['stations']
+            # Вариант 4: data содержит объект с полем 'items'
+            elif 'items' in data_section:
+                _logger.info("Формат даних: data = {items: [список станцій]}")
+                stations_list = data_section['items']
+            else:
+                _logger.warning("Невідомий формат data: %s", list(data_section.keys()))
+                return []
+
+        if not isinstance(stations_list, list):
+            _logger.error("Список станцій не є масивом: тип=%s", type(stations_list))
+            return []
+
+        _logger.info("Знайдено %d станцій у відповіді", len(stations_list))
+
+        # Логирование первой станции для проверки структуры
+        if stations_list:
+            first_station = stations_list[0]
+            _logger.info("Структура першої станції: %s",
+                         {k: type(v).__name__ for k, v in first_station.items()} if isinstance(first_station,
+                                                                                               dict) else type(
+                             first_station))
+
+        return stations_list

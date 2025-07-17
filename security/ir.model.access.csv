@@ -3,6 +3,6 @@ access_smartlogger_station_user,smartlogger.station user,model_smartlogger_stati
 access_smartlogger_station_manager,smartlogger.station manager,model_smartlogger_station,base.group_system,1,1,1,1
 access_smartlogger_data_user,smartlogger.data user,model_smartlogger_data,base.group_user,1,0,1,0
 access_smartlogger_data_manager,smartlogger.data manager,model_smartlogger_data,base.group_system,1,1,1,1
-access_smartlogger_dashboard_user,smartlogger.dashboard user,model_smartlogger_dashboard,base.group_user,1,0,0,0
-access_smartlogger_dashboard_manager,smartlogger.dashboard manager,model_smartlogger_dashboard,base.group_system,1,0,0,0
+access_smartlogger_dashboard_user,smartlogger.dashboard user,model_smartlogger_dashboard,base.group_user,1,1,1,1
+access_smartlogger_dashboard_manager,smartlogger.dashboard manager,model_smartlogger_dashboard,base.group_system,1,1,1,1
 access_smartlogger_sync_data_wizard_user,smartlogger.sync.data.wizard user,model_smartlogger_sync_data_wizard,base.group_user,1,1,1,1

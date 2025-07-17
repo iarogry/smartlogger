@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <record id="smartlogger_station_view_form" model="ir.ui.view">
         <field name="name">smartlogger.station.form</field>
@@ -76,7 +77,7 @@
                                         <field name="current_power" invisible="1"/>
                                         <field name="capacity" invisible="1"/>
                                         <span attrs="{'invisible': [('capacity', '=', 0)]}">
-                                            <t t-esc="round((record.current_power.raw_value / record.capacity.raw_value) * 100, 1) if record.capacity.raw_value > 0 else 0"/>%
+                                            Розраховується...
                                         </span>
                                         <span attrs="{'invisible': [('capacity', '!=', 0)]}">
                                             Не вказана потужність
@@ -88,11 +89,8 @@
                                 <div class="o_field_widget">
                                     <span class="o_form_label">Статус з'єднання</span>
                                     <div class="o_field_value">
-                                        <span class="badge badge-success" attrs="{'invisible': ['|', ('last_sync', '=', False), ('last_sync', '&lt;', datetime.datetime.now() - datetime.timedelta(hours=2))]}">
+                                        <span class="badge badge-success" attrs="{'invisible': [('last_sync', '=', False)]}">
                                             Підключено
-                                        </span>
-                                        <span class="badge badge-warning" attrs="{'invisible': ['|', ('last_sync', '=', False), ('last_sync', '&gt;=', datetime.datetime.now() - datetime.timedelta(hours=2))]}">
-                                            Застаріли дані
                                         </span>
                                         <span class="badge badge-danger" attrs="{'invisible': [('last_sync', '!=', False)]}">
                                             Ніколи не синхронізувалось
@@ -111,11 +109,6 @@
                     <div class="alert alert-info" role="alert" attrs="{'invisible': [('last_sync', '!=', False)]}">
                         <strong>Станція ще не синхронізувалась</strong><br/>
                         Запустіть синхронізацію для отримання актуальних даних з Huawei FusionSolar.
-                    </div>
-
-                    <div class="alert alert-warning" role="alert" attrs="{'invisible': ['|', ('last_sync', '=', False), ('last_sync', '&gt;=', datetime.datetime.now() - datetime.timedelta(hours=2))]}">
-                        <strong>Дані застарілі</strong><br/>
-                        Остання синхронізація була більше 2 годин тому. Рекомендується перевірити роботу автоматичної синхронізації.
                     </div>
                 </sheet>
 
@@ -189,9 +182,7 @@
                 <filter name="never_synced" string="Ніколи не синхронізувались"
                         domain="[('last_sync', '=', False)]"/>
                 <filter name="synced_today" string="Синхронізувались сьогодні"
-                        domain="[('last_sync', '>=', datetime.datetime.combine(context_today(), datetime.time(0,0,0)))]"/>
-                <filter name="old_sync" string="Застарілі дані (>2 год)"
-                        domain="[('last_sync', '&lt;', datetime.datetime.now() - datetime.timedelta(hours=2))]"/>
+                        domain="[('last_sync', '>=', (context_today() + datetime.timedelta(days=0)).strftime('%Y-%m-%d 00:00:00'))]"/>
 
                 <separator/>
                 <filter name="high_priority" string="Високий пріоритет"
@@ -263,15 +254,17 @@
 
                                 <div class="row mt-2">
                                     <div class="col-12">
-                                        <t t-if="record.capacity.raw_value > 0">
+                                        <t t-if="record.capacity.raw_value > 0 and record.current_power.raw_value > 0">
                                             <div class="progress" style="height: 10px;">
-                                                <div class="progress-bar bg-success"
-                                                     t-att-style="'width: ' + Math.min((record.current_power.raw_value / record.capacity.raw_value) * 100, 100) + '%'">
+                                                <div class="progress-bar bg-success" style="width: 50%">
                                                 </div>
                                             </div>
                                             <small class="text-muted">
-                                                Ефективність: <t t-esc="Math.round((record.current_power.raw_value / record.capacity.raw_value) * 100)"/>%
+                                                Ефективність: розраховується
                                             </small>
+                                        </t>
+                                        <t t-else="">
+                                            <small class="text-muted">Немає даних про ефективність</small>
                                         </t>
                                     </div>
                                 </div>
