@@ -3,12 +3,12 @@
 <!-- ЗАМЕНИТЬ ПОЛНОСТЬЮ существующий файл -->
 
 <odoo>
-    <!-- Улучшенное представление для настроек SmartLogger -->
+    <!-- Налаштування SmartLogger -->
     <record id="ir_config_parameter_smartlogger_tree" model="ir.ui.view">
         <field name="name">ir.config_parameter.smartlogger.tree</field>
         <field name="model">ir.config_parameter</field>
         <field name="arch" type="xml">
-            <tree string="Налаштування SmartLogger API" create="false" delete="false" editable="bottom">
+            <tree string="Налаштування SmartLogger API" create="false" delete="false" editable="bottom" default_order="id">
                 <field name="key" readonly="1" string="Параметр"/>
                 <field name="value" string="Значення" placeholder="Введіть значення..."/>
                 <!-- Додаємо поле для групування -->
@@ -79,6 +79,27 @@
                         <strong>Таймаут запиту (секунди)</strong><br/>
                         Максимальний час очікування відповіді від API.<br/>
                         Рекомендовано: 30-60 секунд для великих інсталяцій.
+                    </div>
+                    <div class="alert alert-info" role="alert" attrs="{'invisible': [('key', '!=', 'huawei.fusionsolar.log_level')]}">
+                        <strong>Рівень логування</strong><br/>
+                        Детальність логів синхронізації.<br/>
+                        Значення: DEBUG, INFO, WARNING, ERROR<br/>
+                        DEBUG - найбільш детальний, ERROR - тільки помилки.
+                    </div>
+
+                    <!-- Налаштування API пристроїв -->
+                    <div class="alert alert-warning" role="alert" attrs="{'invisible': [('key', '!=', 'huawei.fusionsolar.use_device_api')]}">
+                        <strong>Використовувати API пристроїв</strong><br/>
+                        Запитувати дані від окремих пристроїв (інверторів), якщо station API не повертає поточну потужність.<br/>
+                        Значення: true/false<br/>
+                        <em>УВАГА: Збільшує кількість API викликів! Увімкніть тільки якщо getStationRealKpi не повертає real_power.</em>
+                    </div>
+
+                    <div class="alert alert-info" role="alert" attrs="{'invisible': [('key', '!=', 'huawei.fusionsolar.device_api_delay')]}">
+                        <strong>Затримка між запитами пристроїв (секунди)</strong><br/>
+                        Пауза між API запитами до кожного пристрою для уникнення перевантаження.<br/>
+                        Рекомендовано: 0.5-1.0 секунди.<br/>
+                        Використовується тільки якщо увімкнено use_device_api.
                     </div>
 
                     <!-- Налаштування даних -->

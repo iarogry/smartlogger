@@ -644,21 +644,48 @@ class SmartLoggerStation(models.Model):
             return None
 
     def _update_station_kpi(self, station, kpi_data):
-        """Оновлює KPI данні станції."""
+        """Оновлює KPI данні станції з підтримкою різних форматів API."""
         try:
             station_kpi = kpi_data.get('dataItemMap', {})
 
-            # Визначаємо статус на основі даних
-            current_power = station_kpi.get('real_power', 0.0)
-            new_status = 'active' if current_power > 0 else 'inactive'
+            # Логирование полученных данных для отладки
+            _logger.info(f"KPI дані для станції {station.station_code}: {list(station_kpi.keys())}")
+
+            # Пытаемся найти текущую мощность из разных возможных полей
+            current_power = self._extract_current_power(station_kpi)
+
+            # Если current_power все еще 0, пытаемся получить данные от устройств
+            if current_power == 0:
+                _logger.info(f"Спробуємо отримати дані від пристроїв для станції {station.station_code}")
+                current_power = self._try_get_device_power(station)
+
+            # Извлекаем энергетические данные
+            daily_energy = self._safe_float_extract(station_kpi, [
+                'day_power', 'dayPower', 'daily_power', 'today_power'
+            ])
+
+            monthly_energy = self._safe_float_extract(station_kpi, [
+                'month_power', 'monthPower', 'monthly_power', 'this_month_power'
+            ])
+
+            yearly_energy = self._safe_float_extract(station_kpi, [
+                'year_power', 'yearPower', 'yearly_power', 'this_year_power'
+            ])
+
+            lifetime_energy = self._safe_float_extract(station_kpi, [
+                'total_power', 'totalPower', 'lifetime_power', 'cumulative_power'
+            ])
+
+            # Определяем статус на основе данных
+            new_status = self._determine_station_status(current_power, station_kpi)
 
             # Оновлення полів станції
             station.write({
                 'current_power': current_power,
-                'daily_energy': station_kpi.get('day_power', 0.0),
-                'monthly_energy': station_kpi.get('month_power', 0.0),
-                'yearly_energy': station_kpi.get('year_power', 0.0),
-                'lifetime_energy': station_kpi.get('total_power', 0.0),
+                'daily_energy': daily_energy,
+                'monthly_energy': monthly_energy,
+                'yearly_energy': yearly_energy,
+                'lifetime_energy': lifetime_energy,
                 'last_sync': fields.Datetime.now(),
                 'status': new_status,
                 'successful_syncs': station.successful_syncs + 1,
@@ -670,13 +697,14 @@ class SmartLoggerStation(models.Model):
                 'station_id': station.id,
                 'timestamp': fields.Datetime.now(),
                 'current_power': current_power,
-                'daily_energy': station_kpi.get('day_power', 0.0),
-                'monthly_energy': station_kpi.get('month_power', 0.0),
-                'yearly_energy': station_kpi.get('year_power', 0.0),
-                'lifetime_energy': station_kpi.get('total_power', 0.0),
+                'daily_energy': daily_energy,
+                'monthly_energy': monthly_energy,
+                'yearly_energy': yearly_energy,
+                'lifetime_energy': lifetime_energy,
             })
 
-            _logger.info(f"KPI станції {station.name} оновлено. Потужність: {current_power} кВт")
+            _logger.info(
+                f"KPI станції {station.name} оновлено. Потужність: {current_power} кВт, Денна енергія: {daily_energy} кВт·год")
 
         except Exception as e:
             _logger.error(f"Помилка оновлення KPI станції {station.station_code}: {str(e)}")
@@ -684,6 +712,198 @@ class SmartLoggerStation(models.Model):
                 'status': 'error',
                 'last_error': str(e)
             })
+
+    def _extract_current_power(self, station_kpi):
+        """Извлекает текущую мощность из различных возможных полей API."""
+        # Список возможных полей для текущей мощности в порядке приоритета
+        power_fields = [
+            'real_power',  # Основное поле
+            'realPower',  # CamelCase вариант
+            'active_power',  # Альтернативное поле
+            'activePower',  # CamelCase вариант
+            'power',  # Простое поле
+            'current_power',  # Текущая мощность
+            'currentPower',  # CamelCase вариант
+            'instant_power',  # Мгновенная мощность
+            'instantPower',  # CamelCase вариант
+            'realtime_power',  # Реальное время мощность
+            'realtimePower',  # CamelCase вариант
+            'day_on_grid_energy',  # Дневная энергия в сети (может показать активность)
+            'grid_power',  # Мощность в сети
+            'inverter_power'  # Мощность инвертора
+        ]
+
+        for field in power_fields:
+            if field in station_kpi:
+                try:
+                    value = float(station_kpi[field])
+                    # Для day_on_grid_energy используем как индикатор активности (если > 0, то мощность есть)
+                    if field == 'day_on_grid_energy' and value > 0:
+                        _logger.info(
+                            f"Знайдено day_on_grid_energy: {value}, станція активна але поточна потужність невідома")
+                        return 1.0  # Возвращаем символическую мощность
+                    elif value > 0:
+                        _logger.info(f"Знайдено поточну потужність в полі '{field}': {value} кВт")
+                        return value
+                except (ValueError, TypeError):
+                    continue
+
+        # Если ничего не найдено, возвращаем 0
+        _logger.warning("Поточну потужність не знайдено в API відповіді")
+        return 0.0
+
+    def _safe_float_extract(self, data_dict, field_names, default=0.0):
+        """Безопасно извлекает float значение из словаря по списку возможных имен полей."""
+        for field_name in field_names:
+            if field_name in data_dict:
+                try:
+                    return float(data_dict[field_name])
+                except (ValueError, TypeError):
+                    continue
+        return default
+
+    def _determine_station_status(self, current_power, station_kpi):
+        """Определяет статус станции на основе данных."""
+        # Проверяем health state если доступен
+        health_state = station_kpi.get('real_health_state')
+        if health_state:
+            try:
+                health_code = int(health_state)
+                if health_code == 1:  # Disconnected
+                    return 'error'
+                elif health_code == 2:  # Fault
+                    return 'error'
+                elif health_code == 3:  # Normal
+                    return 'active' if current_power > 0 else 'inactive'
+            except (ValueError, TypeError):
+                pass
+
+        # Определяем статус по мощности
+        if current_power > 0:
+            return 'active'
+        else:
+            return 'inactive'
+
+    def _try_get_device_power(self, station):
+        """Пытается получить текущую мощность от устройств станции (если getStationRealKpi не возвращает)."""
+        try:
+            # Проверяем, включен ли запрос к устройствам
+            IrConfigParameter = self.env['ir.config_parameter'].sudo()
+            use_device_api = IrConfigParameter.get_param('huawei.fusionsolar.use_device_api', 'true') == 'true'
+
+            if not use_device_api:
+                _logger.info("Запит до API пристроїв вимкнено в конфігурації")
+                return 0.0
+
+            # Получаем учетные данные для отдельного запроса
+            base_url, username, password, batch_size, request_delay = self._get_fusionsolar_api_credentials()
+
+            session = requests.Session()
+            token = self._authenticate(session, base_url, username, password)
+
+            # Получаем список устройств станции
+            device_power = self._get_devices_power(session, base_url, token, station.station_code)
+
+            session.close()
+            return device_power
+
+        except Exception as e:
+            _logger.warning(f"Не вдалося отримати потужність пристроїв для станції {station.station_code}: {str(e)}")
+            return 0.0
+
+    def _get_devices_power(self, session, base_url, token, station_code):
+        """Получает суммарную мощность всех устройств станции."""
+        try:
+            # Получаем задержку для API устройств
+            IrConfigParameter = self.env['ir.config_parameter'].sudo()
+            device_api_delay = float(IrConfigParameter.get_param('huawei.fusionsolar.device_api_delay', '0.5'))
+
+            # Сначала получаем список устройств
+            device_list_url = f"{base_url}/getDevList"
+            headers = {'XSRF-TOKEN': token, 'Content-Type': 'application/json'}
+            payload = {"stationCodes": station_code}
+
+            response = session.post(device_list_url, json=payload, headers=headers, timeout=30)
+            response.raise_for_status()
+
+            device_data = response.json()
+            if not device_data.get('success'):
+                _logger.warning(f"Помилка отримання списку пристроїв: {device_data.get('message')}")
+                return 0.0
+
+            devices = device_data.get('data', [])
+            if not devices:
+                return 0.0
+
+            total_power = 0.0
+            device_count = 0
+
+            # Получаем KPI для каждого устройства типа 1 (инверторы)
+            for device in devices:
+                device_type = device.get('devTypeId')
+                device_id = device.get('id')
+
+                if device_type == 1:  # Инвертор
+                    try:
+                        device_power = self._get_single_device_power(session, base_url, token, device_id)
+                        total_power += device_power
+                        device_count += 1
+                        _logger.info(f"Пристрій {device.get('devName', device_id)}: {device_power} кВт")
+                    except Exception as e:
+                        _logger.warning(f"Помилка отримання потужності пристрою {device_id}: {str(e)}")
+                        continue
+
+                    # Добавляем задержку между запросами
+                    time.sleep(device_api_delay)
+
+            _logger.info(f"Загальна потужність {device_count} пристроїв станції {station_code}: {total_power} кВт")
+            return total_power
+
+        except Exception as e:
+            _logger.error(f"Помилка отримання потужності пристроїв: {str(e)}")
+            return 0.0
+
+    def _get_single_device_power(self, session, base_url, token, device_id):
+        """Получает мощность отдельного устройства."""
+        try:
+            device_kpi_url = f"{base_url}/getDevRealKpi"
+            headers = {'XSRF-TOKEN': token, 'Content-Type': 'application/json'}
+            payload = {"devIds": str(device_id), "devTypeId": "1"}
+
+            response = session.post(device_kpi_url, json=payload, headers=headers, timeout=30)
+            response.raise_for_status()
+
+            device_kpi_data = response.json()
+            if not device_kpi_data.get('success'):
+                return 0.0
+
+            device_data_list = device_kpi_data.get('data', [])
+            if not device_data_list:
+                return 0.0
+
+            device_data = device_data_list[0]
+            device_kpi = device_data.get('dataItemMap', {})
+
+            # Пытаемся извлечь active_power или другие поля мощности
+            power_fields = [
+                'active_power', 'activePower', 'real_power', 'realPower',
+                'power', 'current_power', 'instant_power'
+            ]
+
+            for field in power_fields:
+                if field in device_kpi:
+                    try:
+                        power_value = float(device_kpi[field])
+                        if power_value > 0:
+                            return power_value
+                    except (ValueError, TypeError):
+                        continue
+
+            return 0.0
+
+        except Exception as e:
+            _logger.warning(f"Помилка отримання KPI пристрою {device_id}: {str(e)}")
+            return 0.0
 
     def _authenticate(self, session, base_url, username, password):
         """Аутентифікація в API з правильною обробкою JSON відповідей."""

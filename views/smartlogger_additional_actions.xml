@@ -166,7 +166,7 @@ else:
     info_lines.append('💡 API працює нормально')
 
 message = '\n'.join(info_lines)
-raise UserWarning(message)
+raise UserError(message)
         </field>
     </record>
 
@@ -197,7 +197,7 @@ raise UserWarning(message)
 try:
     result = env['smartlogger.station'].sync_fusionsolar_data()
     if result.get('success'):
-        raise UserWarning('Синхронізація завершена успішно!')
+        raise UserError('Синхронізація завершена успішно!')
     else:
         raise UserError('Помилка синхронізації: %s' % result.get('message', 'Невідома помилка'))
 except Exception as e:
@@ -215,7 +215,7 @@ except Exception as e:
         <field name="code">
 # Помечаем выбранные станции как на обслуживании
 records.write({'status': 'maintenance'})
-raise UserWarning('Вибрані станції позначено як "На обслуговуванні"')
+raise UserError('Вибрані станції позначено як "На обслуговуванні"')
         </field>
     </record>
 
@@ -234,9 +234,9 @@ if error_stations:
         'status': 'active',
         'last_error': False
     })
-    raise UserWarning('Помилки скинуто для %d станцій' % len(error_stations))
+    raise UserError('Помилки скинуто для %d станцій' % len(error_stations))
 else:
-    raise UserWarning('Не знайдено станцій з помилками серед вибраних')
+    raise UserError('Не знайдено станцій з помилками серед вибраних')
         </field>
     </record>
 
@@ -249,11 +249,20 @@ else:
         <field name="state">code</field>
         <field name="code">
 # Показываем информацию о выбранных станциях
+# Если records не передано (вызов из меню), берем все станции
+stations = records if records else model.search([])
+
+if not stations:
+    raise UserError('Станції не знайдено!')
+
 info_lines = []
-info_lines.append('=== ІНФОРМАЦІЯ ПРО ВИБРАНІ СТАНЦІЇ ===')
+if records:
+    info_lines.append('=== ІНФОРМАЦІЯ ПРО ВИБРАНІ СТАНЦІЇ ===')
+else:
+    info_lines.append('=== ІНФОРМАЦІЯ ПРО ВСІ СТАНЦІЇ ===')
 info_lines.append('')
 
-for station in records:
+for station in stations:
     info_lines.append('Станція: %s' % station.name)
     info_lines.append('  Код: %s' % station.station_code)
     info_lines.append('  Статус: %s' % station.status)
@@ -263,15 +272,15 @@ for station in records:
         info_lines.append('  Остання синхронізація: %s' % station.last_sync)
     info_lines.append('')
 
-info_lines.append('Загалом станцій: %d' % len(records))
-total_power = sum(records.mapped('current_power'))
-total_energy = sum(records.mapped('daily_energy'))
+info_lines.append('Загалом станцій: %d' % len(stations))
+total_power = sum(stations.mapped('current_power'))
+total_energy = sum(stations.mapped('daily_energy'))
 info_lines.append('Загальна потужність: %.2f кВт' % total_power)
 info_lines.append('Загальна добова енергія: %.2f кВт·год' % total_energy)
 
 # Выводим информацию
 message = '\n'.join(info_lines)
-raise UserWarning(message)
+raise UserError(message)
         </field>
     </record>
 
@@ -285,7 +294,7 @@ raise UserWarning(message)
         <field name="code">
 # Устанавливаем высокий приоритет синхронизации
 records.write({'sync_priority': 1})
-raise UserWarning('Для %d станцій встановлено високий пріоритет синхронізації' % len(records))
+raise UserError('Для %d станцій встановлено високий пріоритет синхронізації' % len(records))
         </field>
     </record>
 
@@ -304,7 +313,7 @@ try:
         'last_sync': fields.Datetime.now(),
         'status': 'active'
     })
-    raise UserWarning('Примусова синхронізація виконана для %d станцій' % len(records))
+    raise UserError('Примусова синхронізація виконана для %d станцій' % len(records))
 except Exception as e:
     raise UserError('Помилка примусової синхронізації: %s' % str(e))
         </field>
@@ -319,15 +328,24 @@ except Exception as e:
         <field name="state">code</field>
         <field name="code">
 # Группируем станции по регионам
+# Если records не передано (вызов из меню), берем все станции
+stations = records if records else model.search([])
+
+if not stations:
+    raise UserError('Станції не знайдено!')
+
 regions = {}
-for station in records:
+for station in stations:
     region = station.region or 'Без регіону'
     if region not in regions:
         regions[region] = []
     regions[region].append(station.name)
 
 info_lines = []
-info_lines.append('=== ГРУПУВАННЯ ЗА РЕГІОНАМИ ===')
+if records:
+    info_lines.append('=== ГРУПУВАННЯ ВИБРАНИХ СТАНЦІЙ ЗА РЕГІОНАМИ ===')
+else:
+    info_lines.append('=== ГРУПУВАННЯ ВСІХ СТАНЦІЙ ЗА РЕГІОНАМИ ===')
 info_lines.append('')
 
 for region, station_names in regions.items():
@@ -337,8 +355,8 @@ for region, station_names in regions.items():
     info_lines.append('')
 
 message = '\n'.join(info_lines)
-raise UserWarning(message)
-        </field>
+raise UserError(message)
+    </field>
     </record>
 
 </odoo>
