@@ -728,7 +728,6 @@ class SmartLoggerStation(models.Model):
             'instantPower',  # CamelCase вариант
             'realtime_power',  # Реальное время мощность
             'realtimePower',  # CamelCase вариант
-            'day_on_grid_energy',  # Дневная энергия в сети (может показать активность)
             'grid_power',  # Мощность в сети
             'inverter_power'  # Мощность инвертора
         ]
@@ -737,12 +736,7 @@ class SmartLoggerStation(models.Model):
             if field in station_kpi:
                 try:
                     value = float(station_kpi[field])
-                    # Для day_on_grid_energy используем как индикатор активности (если > 0, то мощность есть)
-                    if field == 'day_on_grid_energy' and value > 0:
-                        _logger.info(
-                            f"Знайдено day_on_grid_energy: {value}, станція активна але поточна потужність невідома")
-                        return 1.0  # Возвращаем символическую мощность
-                    elif value > 0:
+                    if value > 0:
                         _logger.info(f"Знайдено поточну потужність в полі '{field}': {value} кВт")
                         return value
                 except (ValueError, TypeError):
@@ -774,15 +768,33 @@ class SmartLoggerStation(models.Model):
                 elif health_code == 2:  # Fault
                     return 'error'
                 elif health_code == 3:  # Normal
-                    return 'active' if current_power > 0 else 'inactive'
+                    # Если health нормальный, проверяем энергию
+                    daily_energy = self._safe_float_extract(station_kpi, [
+                        'day_power', 'dayPower', 'daily_power', 'today_power'
+                    ])
+                    # Если есть дневная энергия - станция активна (работала сегодня)
+                    if daily_energy > 0:
+                        return 'active'
+                    # Если генерирует сейчас - тоже активна
+                    elif current_power > 0:
+                        return 'active'
+                    else:
+                        return 'inactive'
             except (ValueError, TypeError):
                 pass
 
-        # Определяем статус по мощности
-        if current_power > 0:
-            return 'active'
+        # Если health_state недоступен, определяем по энергии и мощности
+        daily_energy = self._safe_float_extract(station_kpi, [
+            'day_power', 'dayPower', 'daily_power', 'today_power'
+        ])
+
+        # Приоритет: сначала проверяем дневную энергию
+        if daily_energy > 0:
+            return 'active'  # Генерировала энергию сегодня = активна
+        elif current_power > 0:
+            return 'active'  # Генерирует сейчас = активна
         else:
-            return 'inactive'
+            return 'inactive'  # Ни энергии за день, ни текущей мощности = неактивна
 
     def _try_get_device_power(self, station):
         """Пытается получить текущую мощность от устройств станции (если getStationRealKpi не возвращает)."""
@@ -946,6 +958,11 @@ class SmartLoggerStation(models.Model):
                     error_msg = _("Перевищено ліміт запитів API. Спробуйте пізніше.")
                 elif fail_code == 20500:
                     error_msg = _("Внутрішня помилка сервера Huawei. Спробуйте пізніше.")
+                elif fail_code == 407:
+                    error_msg = _(
+                        "Перевищено частоту запитів API (код 407). Huawei обмежує кількість запитів. Спробуйте через 5-10 хвилин.")
+                elif fail_code == 20429:
+                    error_msg = _("Перевищено ліміт запитів API. Спробуйте пізніше.")
                 else:
                     error_msg = _("Помилка API: код %s, повідомлення: %s") % (fail_code, api_message)
 

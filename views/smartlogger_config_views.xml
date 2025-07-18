@@ -8,7 +8,7 @@
         <field name="name">ir.config_parameter.smartlogger.tree</field>
         <field name="model">ir.config_parameter</field>
         <field name="arch" type="xml">
-            <tree string="Налаштування SmartLogger API" create="false" delete="false" editable="bottom" default_order="id">
+            <tree string="Налаштування SmartLogger API" create="false" delete="false" default_order="id">
                 <field name="key" readonly="1" string="Параметр"/>
                 <field name="value" string="Значення" placeholder="Введіть значення..."/>
                 <!-- Додаємо поле для групування -->

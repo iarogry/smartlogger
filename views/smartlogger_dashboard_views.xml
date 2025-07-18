@@ -7,39 +7,117 @@
         <field name="arch" type="xml">
             <form string="Дашборд SmartLogger" create="false" edit="false" delete="false">
                 <header>
-                    <button name="action_refresh_data" string="Оновити дані" type="object" class="btn-primary"/>
+                    <button name="action_refresh_data" string="Оновити" type="object" class="btn-primary"/>
+                    <button name="%(action_sync_data_wizard)d" string="Синхронізувати" type="action" class="btn-secondary"/>
                 </header>
-                <sheet>
-                    <div class="oe_title">
-                        <h1>Дашборд SmartLogger</h1>
-                        <p class="text-muted">Загальний огляд всіх станцій</p>
-                    </div>
-                    <group>
-                        <group string="Загальна статистика">
-                            <field name="total_stations"/>
-                            <field name="total_capacity"/>
-                        </group>
-                        <group string="Поточні показники">
-                            <field name="current_total_power"/>
-                            <field name="daily_total_energy"/>
-                        </group>
-                    </group>
+                <sheet class="o_dashboard">
+                    <div class="o_dashboard_view">
+                        <h1 class="mb-3">⚡ SmartLogger Дашборд</h1>
 
-                    <separator string="Швидкі дії"/>
-                    <div class="oe_button_box">
-                        <button name="%(action_smartlogger_station)d"
-                                type="action"
-                                string="Переглянути станції"
-                                class="btn-primary"/>
-                        <button name="%(action_sync_data_wizard)d"
-                                type="action"
-                                string="Синхронізувати дані"
-                                class="btn-secondary"/>
-                    </div>
+                        <!-- KPI Cards Row -->
+                        <div class="row mb-4">
+                            <div class="col-lg-3 col-md-6 mb-3">
+                                <div class="card bg-primary text-white h-100">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between">
+                                            <div>
+                                                <h4 class="card-title"><field name="total_stations" readonly="1"/></h4>
+                                                <p class="card-text">Загальна кількість станцій</p>
+                                            </div>
+                                            <div class="align-self-center">
+                                                <i class="fa fa-building fa-3x opacity-50"/>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
 
-                    <div class="alert alert-info mt-3" role="alert">
-                        <p><strong>Примітка:</strong> Цей дашборд відображає агреговані дані всіх станцій SmartLogger.</p>
-                        <p>Для детального аналізу скористайтеся окремими розділами станцій та історичних даних.</p>
+                            <div class="col-lg-3 col-md-6 mb-3">
+                                <div class="card bg-success text-white h-100">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between">
+                                            <div>
+                                                <h4 class="card-title"><field name="current_total_power" readonly="1"/> кВт</h4>
+                                                <p class="card-text">Поточна потужність</p>
+                                            </div>
+                                            <div class="align-self-center">
+                                                <i class="fa fa-bolt fa-3x opacity-50"/>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-lg-3 col-md-6 mb-3">
+                                <div class="card bg-warning text-white h-100">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between">
+                                            <div>
+                                                <h4 class="card-title"><field name="daily_total_energy" readonly="1"/> кВт·год</h4>
+                                                <p class="card-text">Сьогодні вироблено</p>
+                                            </div>
+                                            <div class="align-self-center">
+                                                <i class="fa fa-sun-o fa-3x opacity-50"/>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-lg-3 col-md-6 mb-3">
+                                <div class="card bg-info text-white h-100">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between">
+                                            <div>
+                                                <h4 class="card-title"><field name="total_capacity" readonly="1"/> кВт</h4>
+                                                <p class="card-text">Загальна потужність</p>
+                                            </div>
+                                            <div class="align-self-center">
+                                                <i class="fa fa-battery-full fa-3x opacity-50"/>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Quick Actions Row -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h5 class="card-title mb-0">🚀 Швидкі дії</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="d-flex flex-wrap gap-2">
+                                            <button name="%(action_smartlogger_station)d" type="action"
+                                                    class="btn btn-primary">
+                                                🏭 Переглянути станції
+                                            </button>
+                                            <button name="%(action_smartlogger_data)d" type="action"
+                                                    class="btn btn-secondary">
+                                                📈 Історичні дані
+                                            </button>
+                                            <button name="%(action_smartlogger_config)d" type="action"
+                                                    class="btn btn-warning">
+                                                ⚙️ Налаштування
+                                            </button>
+                                            <button name="%(action_smartlogger_station_kanban)d" type="action"
+                                                    class="btn btn-info">
+                                                🗂️ Kanban станцій
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+</div>
+
+                        <!-- Info Row -->
+                        <div class="alert alert-info" role="alert">
+                            <h6><strong>Про дашборд</strong></h6>
+                            <p class="mb-1">Цей дашборд відображає ключові показники всіх станцій SmartLogger в реальному часі.</p>
+                            <p class="mb-0">Дані оновлюються автоматично кожні 15 хвилин або вручну кнопкою "Оновити".</p>
+                        </div>
                     </div>
                 </sheet>
             </form>
