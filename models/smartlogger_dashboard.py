@@ -12,6 +12,7 @@ _logger = logging.getLogger(__name__)
 class SmartLoggerDashboard(models.TransientModel):
     _name = 'smartlogger.dashboard'
     _description = 'Дашборд SmartLogger'
+    name = fields.Char(string='Назва', default='Дашборд SmartLogger', readonly=True)
 
     # Поля для відображення
     total_stations = fields.Integer(string='Загальна кількість станцій', default=0)
@@ -375,3 +376,38 @@ class SmartLoggerDashboard(models.TransientModel):
                 'sticky': False,
             }
         }
+
+    def name_get(self):
+        """Повертає читабельну назву для дашборду"""
+        result = []
+        for record in self:
+            result.append((record.id, 'Дашборд SmartLogger'))
+        return result
+
+    @api.model
+    def default_get(self, fields_list):
+        """Заповнення полів дашборду поточними даними"""
+        res = super().default_get(fields_list)
+        if res is None:
+            res = {}
+
+        res['name'] = 'Дашборд SmartLogger'
+
+        try:
+            dashboard_data = self.get_dashboard_data()
+            res.update({
+                'total_stations': dashboard_data.get('total_stations', 0),
+                'total_capacity': dashboard_data.get('total_capacity', 0.0),
+                'current_total_power': dashboard_data.get('current_total_power', 0.0),
+                'daily_total_energy': dashboard_data.get('daily_total_energy', 0.0),
+            })
+        except Exception as e:
+            _logger.warning("Помилка при завантаженні даних дашборду: %s", str(e))
+            # Значення за замовчуванням
+            res.update({
+                'total_stations': 0,
+                'total_capacity': 0.0,
+                'current_total_power': 0.0,
+                'daily_total_energy': 0.0,
+            })
+        return res

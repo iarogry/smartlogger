@@ -960,7 +960,9 @@ class SmartLoggerStation(models.Model):
                     error_msg = _("Внутрішня помилка сервера Huawei. Спробуйте пізніше.")
                 elif fail_code == 407:
                     error_msg = _(
-                        "Перевищено частоту запитів API (код 407). Huawei обмежує кількість запитів. Спробуйте через 5-10 хвилин.")
+                        "Перевищено частоту запитів API (код 407). Призупиняємо автоматичні завдання на 30 хвилин.")
+                    self._handle_frequency_limit_error()
+                    raise UserError(error_msg)
                 elif fail_code == 20429:
                     error_msg = _("Перевищено ліміт запитів API. Спробуйте пізніше.")
                 else:
@@ -1005,6 +1007,52 @@ class SmartLoggerStation(models.Model):
             _logger.error("Неочікувана помилка автентифікації: %s", str(e), exc_info=True)
             self._handle_auth_error(error_msg)
             raise UserError(error_msg)
+
+    @api.model
+    def _handle_frequency_limit_error(self):
+        """Обрабатывает ошибку 407 - приостанавливает задания на 30 минут"""
+        IrConfigParameter = self.env['ir.config_parameter'].sudo()
+
+        # Устанавливаем временную блокировку на 30 минут
+        block_until = fields.Datetime.now() + timedelta(minutes=30)
+        IrConfigParameter.set_param('huawei.fusionsolar.frequency_block_until', block_until)
+
+        # Временно отключаем cron задания
+        cron_jobs = self.env['ir.cron'].search([('name', 'ilike', 'SmartLogger')])
+        for job in cron_jobs:
+            if job.active:
+                job.write({'active': False})
+                IrConfigParameter.set_param(f'huawei.fusionsolar.cron_{job.id}_was_active', 'true')
+
+        _logger.warning("API частота превышена (407). Cron задания приостановлены на 30 минут")
+
+    @api.model
+    def _check_frequency_block(self):
+        """Проверяет и снимает временную блокировку частоты"""
+        IrConfigParameter = self.env['ir.config_parameter'].sudo()
+
+        block_until_str = IrConfigParameter.get_param('huawei.fusionsolar.frequency_block_until')
+        if not block_until_str:
+            return True
+
+        try:
+            block_until = fields.Datetime.from_string(block_until_str)
+            if fields.Datetime.now() > block_until:
+                # Время блокировки истекло, восстанавливаем задания
+                cron_jobs = self.env['ir.cron'].search([('name', 'ilike', 'SmartLogger')])
+                for job in cron_jobs:
+                    was_active = IrConfigParameter.get_param(f'huawei.fusionsolar.cron_{job.id}_was_active')
+                    if was_active == 'true':
+                        job.write({'active': True})
+                        IrConfigParameter.set_param(f'huawei.fusionsolar.cron_{job.id}_was_active', '')
+
+                IrConfigParameter.set_param('huawei.fusionsolar.frequency_block_until', '')
+                _logger.info("Временная блокировка частоты API снята, cron задания восстановлены")
+                return True
+            else:
+                raise UserError(_("API тимчасово заблокований до %s через перевищення частоти запитів") % block_until)
+        except:
+            return True
 
     def action_sync_data(self):
         """Дія для ручної синхронізації даних через інтерфейс."""
